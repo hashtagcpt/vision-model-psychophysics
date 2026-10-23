@@ -507,6 +507,7 @@
         </div>
         <div class="nav-actions">
             <a href="../results_viewer.html" class="btn-action">📊 Human Subject Fits</a>
+            <button class="btn-action" onclick="exportComprehensiveTaskCSV()">⬇ Export All Tasks CSV</button>
             <button class="btn-action" onclick="exportCharacterizationCSV()">⬇ Export Efficiency CSV</button>
             <button class="btn-action btn-primary" onclick="runLiveTrialSimulation()">⚡ Run Live 2IFC Trial Sweep</button>
         </div>
@@ -704,6 +705,54 @@
         </div>
     </div>
 
+    <!-- Expanded Psychophysical Tasks & Predictions Section -->
+    <div class="section-card">
+        <h2>Expanded Psychophysical Tasks &amp; Novel Model Predictions</h2>
+        <p>
+            Standardized benchmarks comparing human data and ideal observers against vision models across
+            <strong>ModelFest in Noise</strong>, <strong>Pelli Word Inefficiency</strong>, <strong>Face/Letter Bandpass Masking</strong>,
+            <strong>Phase Reversal</strong>, <strong>Cyclopean Stereograms</strong>, <strong>Visual Attention Search</strong>,
+            and <strong>Working Memory</strong>, plus novel predictions where vision models disagree.
+        </p>
+
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;">
+            <button class="tab-btn active" id="btnTaskModelfest" onclick="switchTaskTab('modelfest')">🎯 ModelFest in Noise (43 Stimuli)</button>
+            <button class="tab-btn" id="btnTaskWords" onclick="switchTaskTab('words')">📖 Pelli Word Length Inefficiency</button>
+            <button class="tab-btn" id="btnTaskFaces" onclick="switchTaskTab('faces')">👤 Face &amp; Letter SF Masking</button>
+            <button class="tab-btn" id="btnTaskPredictions" onclick="switchTaskTab('predictions')">🔮 Predictions: Where Models Disagree</button>
+        </div>
+
+        <div id="taskContentContainer">
+            <div class="canvas-box" style="margin-bottom: 14px;">
+                <canvas id="canvasTaskPlot" width="1180" height="340"></canvas>
+            </div>
+            <div class="formula-strip" id="taskFooterStrip">Loading task benchmark data...</div>
+        </div>
+
+        <h4 style="font-size: 13.5px; color: var(--purple); margin: 20px 0 10px 0; text-transform: uppercase;">
+            Comprehensive Multi-Task Psychophysical Comparison Table
+        </h4>
+        <div class="table-wrap">
+            <table class="bench-table" id="comprehensiveTaskTable">
+                <thead>
+                    <tr>
+                        <th>Model</th>
+                        <th>Category</th>
+                        <th>ModelFest r (Human)</th>
+                        <th>Word Ineff. &alpha;</th>
+                        <th>Face Peak SF</th>
+                        <th>Face Texture Bias</th>
+                        <th>Phase Sense</th>
+                        <th>Cyclopean RDS</th>
+                        <th>Search Slope</th>
+                        <th>WM Capacity (K)</th>
+                    </tr>
+                </thead>
+                <tbody id="comprehensiveTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
     <!-- Interactive Live 2IFC Stimulus & Model Response Sandbox -->
     <div class="section-card">
         <h2>Interactive 2IFC Trial Generator &amp; Live Local VLM (`llava:latest`) Verification</h2>
@@ -765,6 +814,7 @@
 </div>
 
 <script src="js/benchmark_data.js"></script>
+<script src="js/comprehensive_task_data.js"></script>
 <script>
     const MODEL_COLORS = {
         "ideal_observer": "#00e676",
@@ -778,6 +828,8 @@
     };
 
     let benchData = window.MODEL_PSYCHOPHYSICS_BENCHMARK || null;
+    let taskData = window.COMPREHENSIVE_PSYCHOPHYSICS_DATA || null;
+    let currentTaskTab = "modelfest";
     let primaryModelId = "vit_patch_backbone";
     let activeOverlays = new Set([
         "ideal_observer",
@@ -819,6 +871,8 @@
         renderOverlayPills();
         renderSummaryTable();
         renderLiveVlmTelemetry();
+        renderComprehensiveTable();
+        drawTaskPlot();
         refreshAllViews();
         updateLiveSandbox();
     }
@@ -1522,10 +1576,250 @@
         drawPatch(255, 32, ped, "#ffb300", "Panel 2: Pedestal Only");
     }
 
-    function runLiveTrialSimulation() {
-        updateLiveSandbox(true);
-        refreshAllViews();
+    function switchTaskTab(tabName) {
+        currentTaskTab = tabName;
+        document.getElementById("btnTaskModelfest").classList.toggle("active", tabName === "modelfest");
+        document.getElementById("btnTaskWords").classList.toggle("active", tabName === "words");
+        document.getElementById("btnTaskFaces").classList.toggle("active", tabName === "faces");
+        document.getElementById("btnTaskPredictions").classList.toggle("active", tabName === "predictions");
+        drawTaskPlot();
     }
+
+    function drawTaskPlot() {
+        if (!taskData) return;
+        const canvas = document.getElementById("canvasTaskPlot");
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        const w = canvas.width, h = canvas.height;
+        ctx.fillStyle = "#09090e";
+        ctx.fillRect(0, 0, w, h);
+
+        const padL = 65, padR = 30, padT = 30, padB = 45;
+        const pw = w - padL - padR, ph = h - padT - padB;
+
+        ctx.strokeStyle = "rgba(255,255,255,0.08)";
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= 4; i++) {
+            const y = padT + (i / 4) * ph;
+            ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(w - padR, y); ctx.stroke();
+        }
+
+        const footer = document.getElementById("taskFooterStrip");
+
+        if (currentTaskTab === "modelfest") {
+            const mf = taskData.modelfest;
+            const stimIds = Object.keys(mf.stimuli).map(Number).sort((a,b) => a - b);
+            const humanLogCS = stimIds.map(i => mf.stimuli[i].log_sens);
+            const yMin = 0.8, yMax = 2.6;
+
+            // Plot Human Benchmark Curve
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 2.8;
+            ctx.beginPath();
+            stimIds.forEach((id, idx) => {
+                const px = padL + (idx / (stimIds.length - 1)) * pw;
+                const py = padT + ph - ((humanLogCS[idx] - yMin) / (yMax - yMin)) * ph;
+                if (idx === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            });
+            ctx.stroke();
+
+            // Overlay models
+            activeOverlays.forEach(mid => {
+                const modTh = mf.results[mid].thresholds;
+                const modLogCS = stimIds.map(i => -Math.log10(Math.max(modTh[i], 1e-5)));
+                ctx.strokeStyle = MODEL_COLORS[mid] || "#aaa";
+                ctx.lineWidth = (mid === primaryModelId) ? 3.0 : 1.5;
+                ctx.beginPath();
+                stimIds.forEach((id, idx) => {
+                    const px = padL + (idx / (stimIds.length - 1)) * pw;
+                    const py = padT + ph - ((Math.min(yMax, Math.max(yMin, modLogCS[idx])) - yMin) / (yMax - yMin)) * ph;
+                    if (idx === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                });
+                ctx.stroke();
+            });
+
+            ctx.fillStyle = "#fff";
+            ctx.font = "bold 12px sans-serif";
+            ctx.fillText("─── Human ModelFest Benchmark (Carney et al. 2000, N=16)", padL + 10, padT - 10);
+            ctx.fillStyle = "#888";
+            ctx.font = "11px monospace";
+            stimIds.forEach((id, idx) => {
+                if (idx % 2 === 0) {
+                    const px = padL + (idx / (stimIds.length - 1)) * pw;
+                    ctx.fillText("#" + id, px - 8, h - 14);
+                }
+            });
+            footer.innerHTML = `<strong>ModelFest in Noise:</strong> 43 Canonical spatial stimuli in N_ext = 1.6e-4 deg². Human correlation for ${primaryModelId}: r = ${mf.results[primaryModelId].corr_with_human} (RMSE = ${mf.results[primaryModelId].rmse_log_cs} log units).`;
+        } else if (currentTaskTab === "words") {
+            const wd = taskData.letter_word_inefficiency;
+            const lens = [1, 2, 3, 4, 5, 6, 8];
+            const logLens = lens.map(Math.log10);
+            const xMin = logLens[0], xMax = logLens[logLens.length - 1];
+            const logYMin = -0.3, logYMax = 2.1; // 0.5% to 100% efficiency
+
+            // Plot Human Benchmark
+            const hEffs = lens.map(l => wd.human_benchmark[l].human_efficiency_pct);
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 2.8;
+            ctx.beginPath();
+            lens.forEach((l, idx) => {
+                const px = padL + ((logLens[idx] - xMin) / (xMax - xMin)) * pw;
+                const py = padT + ph - ((Math.log10(hEffs[idx]) - logYMin) / (logYMax - logYMin)) * ph;
+                if (idx === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            });
+            ctx.stroke();
+
+            // Overlay models
+            activeOverlays.forEach(mid => {
+                const effMap = wd.results[mid].efficiency_by_length_pct;
+                ctx.strokeStyle = MODEL_COLORS[mid] || "#aaa";
+                ctx.lineWidth = (mid === primaryModelId) ? 3.0 : 1.5;
+                ctx.beginPath();
+                lens.forEach((l, idx) => {
+                    const px = padL + ((logLens[idx] - xMin) / (xMax - xMin)) * pw;
+                    const py = padT + ph - ((Math.log10(Math.max(0.5, effMap[l])) - logYMin) / (logYMax - logYMin)) * ph;
+                    if (idx === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                });
+                ctx.stroke();
+            });
+
+            ctx.fillStyle = "#fff";
+            ctx.font = "bold 12px sans-serif";
+            ctx.fillText("─── Pelli et al. (2003) Human Word Inefficiency (slope α = -0.98, strict letter bottleneck)", padL + 10, padT - 10);
+            lens.forEach((l, idx) => {
+                const px = padL + ((logLens[idx] - xMin) / (xMax - xMin)) * pw;
+                ctx.fillStyle = "#888";
+                ctx.font = "11px monospace";
+                ctx.fillText(l + " letters", px - 16, h - 14);
+            });
+            footer.innerHTML = `<strong>Remarkable Inefficiency of Word Detection:</strong> Human efficiency drops as 1/L (α = -0.98). Selected model (${primaryModelId}) scales with α = -${wd.results[primaryModelId].alpha_word_length_exponent}. Ideal Observer maintains 100% (α = 0).`;
+        } else if (currentTaskTab === "faces") {
+            const bp = taskData.face_letter_bandpass;
+            const sfs = [2, 4, 8, 12, 16, 32];
+            const logS = sfs.map(Math.log2);
+            const xMin = logS[0], xMax = logS[logS.length - 1];
+
+            // Plot Human Face Benchmark
+            const hMask = sfs.map(s => bp.human_benchmark.face.masking_by_sf[s] || 0.1);
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = 2.8;
+            ctx.beginPath();
+            sfs.forEach((s, idx) => {
+                const px = padL + ((logS[idx] - xMin) / (xMax - xMin)) * pw;
+                const py = padT + ph - hMask[idx] * ph;
+                if (idx === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            });
+            ctx.stroke();
+
+            activeOverlays.forEach(mid => {
+                const fMap = bp.results[mid].face_tuning;
+                ctx.strokeStyle = MODEL_COLORS[mid] || "#aaa";
+                ctx.lineWidth = (mid === primaryModelId) ? 3.0 : 1.5;
+                ctx.beginPath();
+                sfs.forEach((s, idx) => {
+                    const px = padL + ((logS[idx] - xMin) / (xMax - xMin)) * pw;
+                    const py = padT + ph - (fMap[s] || 0.1) * ph;
+                    if (idx === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                });
+                ctx.stroke();
+            });
+
+            ctx.fillStyle = "#fff";
+            ctx.font = "bold 12px sans-serif";
+            ctx.fillText("─── Gold et al. (1999) Human Face Tuning (Peak = 9.5 c/face; models over-rely on >16 c/face)", padL + 10, padT - 10);
+            sfs.forEach((s, idx) => {
+                const px = padL + ((logS[idx] - xMin) / (xMax - xMin)) * pw;
+                ctx.fillStyle = "#888";
+                ctx.font = "11px monospace";
+                ctx.fillText(s + " c/face", px - 18, h - 14);
+            });
+            footer.innerHTML = `<strong>Face & Letter Bandpass Masking:</strong> Human face identification relies strictly on 8-12 cycles/face. Deep vision models exhibit high-frequency texture bias (${bp.results[primaryModelId].face_peak_sf} c/face peak, high-SF ratio = ${bp.results[primaryModelId].high_sf_bias_ratio}x).`;
+        } else if (currentTaskTab === "predictions") {
+            const preds = taskData.predictions;
+            const p1 = preds.prediction_1_patch_jitter;
+            const shifts = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+
+            activeOverlays.forEach(mid => {
+                const thMap = p1.models[mid].thresholds_by_shift_px;
+                const vals = shifts.map(s => thMap[s] || 0.015);
+                const isPrimary = (mid === primaryModelId);
+                ctx.strokeStyle = MODEL_COLORS[mid] || "#aaa";
+                ctx.lineWidth = isPrimary ? 3.2 : 1.6;
+                ctx.beginPath();
+                shifts.forEach((s, idx) => {
+                    const px = padL + (s / 8.0) * pw;
+                    const py = padT + ph - (vals[idx] / 0.045) * ph;
+                    if (idx === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                });
+                ctx.stroke();
+            });
+
+            ctx.fillStyle = "#ff5252";
+            ctx.font = "bold 12px sans-serif";
+            ctx.fillText("🔮 Prediction 1: ViT Patch-Boundary Translation Ripple (Token Splitting Artifact vs Invariant ConvNet)", padL + 10, padT - 10);
+            shifts.forEach(s => {
+                const px = padL + (s / 8.0) * pw;
+                ctx.fillStyle = (s === 0 || s === 8) ? "#ff5252" : "#888";
+                ctx.font = "11px monospace";
+                ctx.fillText(s === 0 ? "0 (Border)" : (s === 8 ? "8 (Border)" : s + " px"), px - 14, h - 14);
+            });
+            footer.innerHTML = `<strong>Disagreement Prediction:</strong> Sub-patch translation ripple for ${primaryModelId}: ${p1.models[primaryModelId].peak_to_trough_ripple_pct}% threshold elevation across 8x8 patch border (Patch Grid Aliasing: ${p1.models[primaryModelId].exhibits_patch_grid_aliasing}).`;
+        }
+    }
+
+    function renderComprehensiveTable() {
+        if (!taskData || !taskData.summary_table) return;
+        const tbody = document.getElementById("comprehensiveTableBody");
+        if (!tbody) return;
+        tbody.innerHTML = "";
+        taskData.summary_table.forEach(row => {
+            const tr = document.createElement("tr");
+            if (row.model_id === primaryModelId) tr.className = "selected-row";
+            tr.style.cursor = "pointer";
+            tr.onclick = () => {
+                document.getElementById("primaryModelSelect").value = row.model_id;
+                onPrimaryModelChange();
+            };
+            const color = MODEL_COLORS[row.model_id] || "#fff";
+            const rBadge = `<span class="pill-badge pill-green">r = ${row.modelfest_r_human.toFixed(3)}</span>`;
+            const rdsBadge = row.cyclopean_stereopsis_pct > 0
+                ? `<span class="pill-badge pill-green">${row.cyclopean_stereopsis_pct.toFixed(1)}%</span>`
+                : `<span class="pill-badge pill-red">0% (Fail)</span>`;
+            const phBadge = row.preserves_phase
+                ? `<span class="pill-badge pill-green">Yes (${row.phase_sensitivity_index.toFixed(2)})</span>`
+                : `<span class="pill-badge pill-red">No (${row.phase_sensitivity_index.toFixed(2)})</span>`;
+
+            tr.innerHTML = `
+                <td><span class="dot" style="background:${color}; margin-right:6px;"></span><strong>${row.name}</strong></td>
+                <td style="color:#888;">${row.category}</td>
+                <td>${rBadge}</td>
+                <td>&alpha; = -${row.word_alpha_exponent.toFixed(2)}</td>
+                <td>${row.face_critical_sf.toFixed(1)} c/face</td>
+                <td>${row.face_high_sf_texture_bias.toFixed(2)}x</td>
+                <td>${phBadge}</td>
+                <td>${rdsBadge}</td>
+                <td>${row.search_set_size_slope.toFixed(2)}</td>
+                <td>${row.working_memory_k_capacity > 0 ? row.working_memory_k_capacity.toFixed(1) + ' items' : 'None (0)'}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function exportComprehensiveTaskCSV() {
+        if (!taskData || !taskData.summary_table) return;
+        const rows = taskData.summary_table;
+        const keys = Object.keys(rows[0]);
+        const csv = [
+            keys.join(","),
+            ...rows.map(r => keys.map(k => JSON.stringify(r[k])).join(","))
+        ].join("\n");
+        const blob = new Blob([csv], { type: "text/csv" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "comprehensive_vision_tasks_and_predictions.csv";
+        a.click();
+    }
+
 
     function exportCharacterizationCSV() {
         if (!benchData || !benchData.summary_table) return;
