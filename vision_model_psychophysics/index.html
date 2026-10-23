@@ -719,8 +719,8 @@
             <button class="tab-btn active" id="btnTaskModelfest" onclick="switchTaskTab('modelfest')">🎯 ModelFest in Noise (43 Stimuli)</button>
             <button class="tab-btn" id="btnTaskWords" onclick="switchTaskTab('words')">📖 Pelli Word Inefficiency</button>
             <button class="tab-btn" id="btnTaskFaces" onclick="switchTaskTab('faces')">👤 Face &amp; Letter SF Masking</button>
-            <button class="tab-btn" id="btnTaskT2009" onclick="switchTaskTab('t2009')">📊 Taylor 2009 SF Summation</button>
-            <button class="tab-btn" id="btnTaskT2014" onclick="switchTaskTab('t2014')">📐 Taylor 2014 Dynamic Tuning</button>
+            <button class="tab-btn" id="btnTaskT2009" onclick="switchTaskTab('t2009')">📊 Taylor 2009 1D-SF Noise Summation</button>
+            <button class="tab-btn" id="btnTaskT2014" onclick="switchTaskTab('t2014')">📐 Taylor 2014 Orientation Noise Summation</button>
             <button class="tab-btn" id="btnTaskFinv" onclick="switchTaskTab('finv')">🎭 Face Inversion Effect</button>
             <button class="tab-btn" id="btnTaskContour" onclick="switchTaskTab('contour')">🐍 Contour Association Fields</button>
             <button class="tab-btn" id="btnTaskCrowding" onclick="switchTaskTab('crowding')">👀 Visual Crowding &amp; Pooling</button>
@@ -770,8 +770,8 @@
                         <th>Word &alpha;</th>
                         <th>Face SF</th>
                         <th>Face Text.</th>
-                        <th>Taylor '09 SI</th>
-                        <th>Taylor '14 Flex</th>
+                        <th>Taylor '09 1D-SF</th>
+                        <th>Taylor '14 Ori</th>
                         <th>Face Inv.</th>
                         <th>Contour Jitter</th>
                         <th>Crowding Spacing</th>
@@ -1796,99 +1796,36 @@
             });
             footer.innerHTML = `<strong>Face & Letter Bandpass Masking:</strong> Human face identification relies strictly on 8-12 cycles/face. Deep vision models exhibit high-frequency texture bias (${bp.results[primaryModelId].face_peak_sf} c/face peak, high-SF ratio = ${bp.results[primaryModelId].high_sf_bias_ratio}x).`;
         } else if (currentTaskTab === "t2009") {
-            // Taylor, Bennett, & Sekuler (2009) Spatial Frequency Summation
+            // Taylor, Bennett, & Sekuler (2009) 1D Noise SF Bandwidth Summation
             const t9 = taskData.taylor_2009_sf_summation;
-            const models = Array.from(activeOverlays);
-            const barW = Math.min(65, (pw - 20) / (models.length + 1));
+            const bws = [0.5, 1.0, 1.5, 2.0, 3.0];
+            const logBws = bws.map(Math.log2);
+            const xMin = logBws[0], xMax = logBws[logBws.length - 1];
+            const yMin = 10.0, yMax = 105.0; // Efficiency % (10% to 100%)
 
-            // Human benchmark line at 1.22
-            const yRefHuman = padT + ph - ((1.22 - 0.8) / (1.6 - 0.8)) * ph;
+            // Human benchmark efficiency curve
+            const hEffs = bws.map(b => t9.human_benchmark.human_efficiency_by_bandwidth_pct[b]);
             ctx.strokeStyle = "#00e676";
-            ctx.lineWidth = 2.2;
-            ctx.setLineDash([6, 4]);
-            ctx.beginPath(); ctx.moveTo(padL, yRefHuman); ctx.lineTo(w - padR, yRefHuman); ctx.stroke();
-            ctx.setLineDash([]);
-            ctx.fillStyle = "#00e676";
-            ctx.font = "bold 11px sans-serif";
-            ctx.fillText("Human Sub-Ideal Summation Benchmark SI = 1.22 ± 0.04 (Taylor et al. 2009)", padL + 10, yRefHuman - 6);
-
-            // Ideal summation line at 1.414 (sqrt(2))
-            const yRefIdeal = padT + ph - ((1.414 - 0.8) / (1.6 - 0.8)) * ph;
-            ctx.strokeStyle = "rgba(255,255,255,0.4)";
-            ctx.lineWidth = 1.8;
-            ctx.setLineDash([4, 4]);
-            ctx.beginPath(); ctx.moveTo(padL, yRefIdeal); ctx.lineTo(w - padR, yRefIdeal); ctx.stroke();
-            ctx.setLineDash([]);
-            ctx.fillStyle = "#aaa";
-            ctx.fillText("Ideal Linear Observer SI = √2 ≈ 1.414", padL + 10, yRefIdeal - 6);
-
-            models.forEach((mid, idx) => {
-                const si = t9.results[mid].summation_index;
-                const bx = padL + 20 + idx * (barW + 16);
-                const bh = ((Math.max(0.8, Math.min(1.55, si)) - 0.8) / (1.6 - 0.8)) * ph;
-                const by = padT + ph - bh;
-
-                ctx.fillStyle = MODEL_COLORS[mid] || "#aaa";
-                ctx.fillRect(bx, by, barW, bh);
-                if (mid === primaryModelId) {
-                    ctx.strokeStyle = "#fff";
-                    ctx.lineWidth = 2.5;
-                    ctx.strokeRect(bx, by, barW, bh);
-                }
-
-                ctx.fillStyle = "#fff";
-                ctx.font = "bold 11px monospace";
-                ctx.fillText(si.toFixed(2), bx + 6, by - 6);
-
-                ctx.fillStyle = "#888";
-                ctx.font = "10px sans-serif";
-                ctx.fillText(mid.substring(0, 8), bx, h - 14);
-            });
-
-            const selSi = t9.results[primaryModelId].summation_index;
-            const selRatio = t9.results[primaryModelId].f1_to_f2_energy_ratio_in_ci;
-            footer.innerHTML = `<strong>Taylor, Bennett, & Sekuler (2009) SF Summation:</strong> Human SI = 1.22 (independent 2 & 6 cpd channels). Selected model (${primaryModelId}) achieves SI = ${selSi} (f1/f2 weight ratio in CI = ${selRatio}). ConvNets attenuate 6 cpd due to stride pooling.`;
-        } else if (currentTaskTab === "t2014") {
-            // Taylor, Bennett, & Sekuler (2014) Dynamic Orientation Tuning
-            const t14 = taskData.taylor_2014_orientation_tuning;
-            const angles = [-45, -35, -25, -15, -5, 0, 5, 15, 25, 35, 45];
-            const xMin = -45, xMax = 45;
-
-            // Plot Human Narrow vs Broad condition tuning
-            ctx.strokeStyle = "#00e676";
-            ctx.lineWidth = 2.5;
+            ctx.lineWidth = 2.8;
             ctx.beginPath();
-            angles.forEach((deg, idx) => {
-                const px = padL + ((deg - xMin) / (xMax - xMin)) * pw;
-                const v = Math.exp(-((deg / 16.5) ** 2) * 0.693);
-                const py = padT + ph - v * ph;
+            bws.forEach((b, idx) => {
+                const px = padL + ((logBws[idx] - xMin) / (xMax - xMin)) * pw;
+                const py = padT + ph - ((hEffs[idx] - yMin) / (yMax - yMin)) * ph;
                 if (idx === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
             });
             ctx.stroke();
 
-            ctx.strokeStyle = "rgba(0, 230, 118, 0.5)";
-            ctx.lineWidth = 2.0;
-            ctx.setLineDash([5, 4]);
-            ctx.beginPath();
-            angles.forEach((deg, idx) => {
-                const px = padL + ((deg - xMin) / (xMax - xMin)) * pw;
-                const v = Math.exp(-((deg / 28.2) ** 2) * 0.693);
-                const py = padT + ph - v * ph;
-                if (idx === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
-            });
-            ctx.stroke();
-            ctx.setLineDash([]);
-
-            // Overlay models
+            // Overlay model efficiency curves
             activeOverlays.forEach(mid => {
-                const prof = t14.results[mid].orientation_tuning_profile;
+                const effMap = t9.results[mid].efficiency_by_bandwidth_pct;
+                const isPrimary = (mid === primaryModelId);
                 ctx.strokeStyle = MODEL_COLORS[mid] || "#aaa";
-                ctx.lineWidth = (mid === primaryModelId) ? 3.0 : 1.5;
+                ctx.lineWidth = isPrimary ? 3.2 : 1.6;
                 ctx.beginPath();
-                angles.forEach((deg, idx) => {
-                    const px = padL + ((deg - xMin) / (xMax - xMin)) * pw;
-                    const v = prof[deg] !== undefined ? prof[deg] : Math.exp(-((deg / 20.0) ** 2));
-                    const py = padT + ph - v * ph;
+                bws.forEach((b, idx) => {
+                    const px = padL + ((logBws[idx] - xMin) / (xMax - xMin)) * pw;
+                    const val = Math.min(yMax, Math.max(yMin, effMap[b] || 25.0));
+                    const py = padT + ph - ((val - yMin) / (yMax - yMin)) * ph;
                     if (idx === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
                 });
                 ctx.stroke();
@@ -1896,18 +1833,69 @@
 
             ctx.fillStyle = "#fff";
             ctx.font = "bold 12px sans-serif";
-            ctx.fillText("─── Human Adaptive Orientation Bandwidth (HWHM: 16.5° narrow vs 28.2° broad; Taylor et al. 2014)", padL + 10, padT - 10);
-            angles.forEach((deg, idx) => {
-                if (idx % 2 === 1) {
-                    const px = padL + ((deg - xMin) / (xMax - xMin)) * pw;
-                    ctx.fillStyle = "#888";
-                    ctx.font = "11px monospace";
-                    ctx.fillText(deg + "°", px - 10, h - 14);
-                }
+            ctx.fillText("─── Taylor et al. (2009) Human Efficiency in 1D Noise (Fixed internal channel FWHM ≈ 1.25 oct)", padL + 10, padT - 10);
+            bws.forEach((b, idx) => {
+                const px = padL + ((logBws[idx] - xMin) / (xMax - xMin)) * pw;
+                ctx.fillStyle = "#888";
+                ctx.font = "11px monospace";
+                ctx.fillText(b.toFixed(1) + " oct", px - 16, h - 14);
+            });
+
+            const selExp = t9.results[primaryModelId].internal_filter_expansion_ratio;
+            const selNarrowFwhm = t9.results[primaryModelId].narrow_stimulus_internal_ci_bandwidth_oct;
+            const selBroadFwhm = t9.results[primaryModelId].broad_stimulus_internal_ci_bandwidth_oct;
+            footer.innerHTML = `<strong>Taylor, Bennett, & Sekuler (2009) 1D Noise SF Summation:</strong> Human classification images reveal a FIXED internal filter bandwidth (~1.25 octaves in both narrow and broad noise; Expansion Ratio = 1.03x). Selected model (${primaryModelId}) filter FWHM = ${selNarrowFwhm} oct (narrow) vs ${selBroadFwhm} oct (broad) → Expansion Ratio = ${selExp}x.`;
+        } else if (currentTaskTab === "t2014") {
+            // Taylor, Bennett, & Sekuler (2014) Orientation Bandwidth Summation & Adjustable Channels
+            const t14 = taskData.taylor_2014_orientation_tuning;
+            const bws = [10.0, 20.0, 40.0, 90.0, 180.0];
+            const logBws = bws.map(Math.log10);
+            const xMin = logBws[0], xMax = logBws[logBws.length - 1];
+            const yMin = 10.0, yMax = 105.0;
+
+            // Human benchmark efficiency curve
+            const hEffs = bws.map(b => t14.human_benchmark.human_efficiency_by_bandwidth_pct[b]);
+            ctx.strokeStyle = "#00e676";
+            ctx.lineWidth = 2.8;
+            ctx.beginPath();
+            bws.forEach((b, idx) => {
+                const px = padL + ((logBws[idx] - xMin) / (xMax - xMin)) * pw;
+                const py = padT + ph - ((hEffs[idx] - yMin) / (yMax - yMin)) * ph;
+                if (idx === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            });
+            ctx.stroke();
+
+            // Overlay models
+            activeOverlays.forEach(mid => {
+                const effMap = t14.results[mid].efficiency_by_orientation_bandwidth_pct;
+                const isPrimary = (mid === primaryModelId);
+                ctx.strokeStyle = MODEL_COLORS[mid] || "#aaa";
+                ctx.lineWidth = isPrimary ? 3.2 : 1.6;
+                ctx.beginPath();
+                bws.forEach((b, idx) => {
+                    const px = padL + ((logBws[idx] - xMin) / (xMax - xMin)) * pw;
+                    const val = Math.min(yMax, Math.max(yMin, effMap[b] || 20.0));
+                    const py = padT + ph - ((val - yMin) / (yMax - yMin)) * ph;
+                    if (idx === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                });
+                ctx.stroke();
+            });
+
+            ctx.fillStyle = "#fff";
+            ctx.font = "bold 12px sans-serif";
+            ctx.fillText("─── Taylor et al. (2014) Orientation Summation & Dynamic Bandwidth (HWHM expands 14.5° → 36.8°)", padL + 10, padT - 10);
+            bws.forEach((b, idx) => {
+                const px = padL + ((logBws[idx] - xMin) / (xMax - xMin)) * pw;
+                ctx.fillStyle = "#888";
+                ctx.font = "11px monospace";
+                ctx.fillText(b.toFixed(0) + "°", px - 8, h - 14);
             });
 
             const selFlex = t14.results[primaryModelId].bandwidth_flexibility_ratio;
-            footer.innerHTML = `<strong>Taylor, Bennett, & Sekuler (2014) Dynamic Orientation Channels:</strong> Humans adaptively widen filter bandwidth under uncertainty (Flexibility Ratio = 1.71x). Rigid V1 & CNN filters exhibit ratio = ${selFlex}x (Fixed filter model = 1.00x).`;
+            const selNarrowHwhm = t14.results[primaryModelId].narrow_stimulus_internal_ci_hwhm_deg;
+            const selBroadHwhm = t14.results[primaryModelId].broad_stimulus_internal_ci_hwhm_deg;
+            const selSupp = t14.results[primaryModelId].exhibits_orthogonal_suppression ? "Yes" : "None";
+            footer.innerHTML = `<strong>Taylor, Bennett, & Sekuler (2014) Orientation Summation:</strong> Unlike SF, internal orientation channels DYNAMICALLY WIDEN to match stimulus bandwidth (Human HWHM: 14.5° narrow → 36.8° broad, Flexibility Ratio = 2.54x) with active orthogonal suppression. Selected model (${primaryModelId}) HWHM: ${selNarrowHwhm}° → ${selBroadHwhm}° (Flexibility Ratio = ${selFlex}x, Orthogonal Suppression = ${selSupp}). Rigid ConvNet/V1 filters = 1.02x.`;
         } else if (currentTaskTab === "finv") {
             // Face Inversion Effect (Sekuler et al. 2004; Taylor et al. 2014)
             const fi = taskData.face_inversion_ci;
@@ -2070,8 +2058,8 @@
 
     // --- POPULATE CLASSIFICATION IMAGE GALLERY DROPDOWNS ---
     const CI_GALLERY_TASKS = [
-        { id: "t2009", name: "Taylor 2009 SF Summation (Compound f1+f2)" },
-        { id: "t2014", name: "Taylor 2014 Orientation Tuning (4 cpd Gabor)" },
+        { id: "t2009", name: "Taylor 2009 1D Noise SF Bandwidth Summation" },
+        { id: "t2014", name: "Taylor 2014 2D Noise Orientation Bandwidth Summation" },
         { id: "finv", name: "Face Inversion Effect (Upright Face, Sekuler 2004)" },
         { id: "contour", name: "Contour Collinear Association Field (Field 1993)" },
         { id: "crowding", name: "Visual Crowding Compulsory Pooling (Bouma 1970)" },
@@ -2120,12 +2108,12 @@
 
         if (taskKey === "t2009") {
             ciData = taskData.taylor_2009_sf_summation.results[modelKey]?.classification_image;
-            taskLabel = "Taylor, Bennett, & Sekuler (2009) Compound Grating (2 + 6 cpd)";
-            diagText = "Ideal observer allocates equal matched energy to 2 and 6 cpd components. Deep ConvNets over-attenuate the 6 cpd harmonic due to stride-2 pooling kernels, while human templates maintain both frequencies with slight f1 dominance.";
+            taskLabel = "Taylor, Bennett, & Sekuler (2009) 1D Noise SF Bandwidth Summation";
+            diagText = "Human classification images reveal that the internal filter spatial frequency bandwidth remains FIXED (~1.25 octaves) whether stimulus bandwidth is 0.5 or 3.0 octaves (Expansion Ratio = 1.03x). Resolves Kersten's paradox: broadband efficiency is achieved via fixed multichannel pooling rather than adjustable-bandwidth filters.";
         } else if (taskKey === "t2014") {
             ciData = taskData.taylor_2014_orientation_tuning.results[modelKey]?.classification_image;
-            taskLabel = "Taylor, Bennett, & Sekuler (2014) Orientation Channel Tuning (4 cpd)";
-            diagText = "Human observers dynamically adapt orientation filter bandwidth (HWHM: 16.5° narrow vs 28.2° broad). Static V1 filter banks and frozen ConvNet kernels have rigid fixed bandwidths (flexibility ratio ≈ 1.02x).";
+            taskLabel = "Taylor, Bennett, & Sekuler (2014) Orientation Bandwidth Summation & Adjustable Channels";
+            diagText = "Unlike spatial frequency, internal orientation channels DYNAMICALLY WIDEN to match stimulus orientation bandwidth (Human HWHM: 14.5° narrow → 36.8° broad, Flexibility Ratio = 2.54x) alongside active orthogonal suppression. Rigid ConvNets and V1 filter banks fail to adapt (Flexibility Ratio ≈ 1.02x).";
         } else if (taskKey === "finv") {
             ciData = taskData.face_inversion_ci.results[modelKey]?.classification_image_upright;
             taskLabel = "Face Inversion Effect (Sekuler et al. 2004; Taylor et al. 2014)";
@@ -2333,7 +2321,7 @@
                 ? `<span class="pill-badge pill-green">Yes (${row.phase_sensitivity_index.toFixed(2)})</span>`
                 : `<span class="pill-badge pill-red">No (${row.phase_sensitivity_index.toFixed(2)})</span>`;
 
-            const t9Val = row.taylor_2009_summation_index !== undefined ? row.taylor_2009_summation_index.toFixed(2) : '--';
+            const t9Val = row.taylor_2009_expansion_ratio !== undefined ? row.taylor_2009_expansion_ratio.toFixed(2) + 'x' : '--';
             const t14Val = row.taylor_2014_flexibility_ratio !== undefined ? row.taylor_2014_flexibility_ratio.toFixed(2) + 'x' : '--';
             const fiVal = row.face_inversion_index !== undefined ? row.face_inversion_index.toFixed(2) + 'x' : '--';
             const coVal = row.contour_jitter_tolerance_deg !== undefined ? row.contour_jitter_tolerance_deg.toFixed(1) + '°' : '--';
