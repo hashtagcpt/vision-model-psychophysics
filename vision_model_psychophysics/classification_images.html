@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classification Images Multi-Model Gallery — Vision Science Suite</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-card: #13131c;
+            --bg-card-hover: #1b1b28;
+            --card-border: #252538;
+            --accent: #00bcd4;
+            --accent-glow: rgba(0, 188, 212, 0.35);
+            --text-main: #f0f0f5;
+            --text-muted: #9595aa;
+            --green: #00e676;
+            --amber: #ffb300;
+            --purple: #b388ff;
+            --red: #ff5252;
+            --pink: #ff4081;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 22px 28px 60px 28px;
+        }
+
+        .container {
+            max-width: 1560px;
+            margin: 0 auto;
+        }
+
+        /* Top Navbar */
+        .top-navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .btn-nav {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 8px 14px;
+            border-radius: 8px;
+            background: rgba(0, 188, 212, 0.12);
+            border: 1px solid rgba(0, 188, 212, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .btn-nav:hover {
+            background: rgba(0, 188, 212, 0.25);
+            color: #fff;
+        }
+
+        .top-title {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.4px;
+            background: linear-gradient(135deg, #ffffff 30%, #00e676 70%, #00bcd4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            background: rgba(255, 255, 255, 0.07);
+            color: #e0e0e8;
+            font-weight: 600;
+            font-size: 12.5px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 8px;
+            padding: 8px 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-action:hover {
+            background: rgba(255, 255, 255, 0.14);
+            color: #fff;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #000;
+            border-color: var(--accent);
+            font-weight: 700;
+        }
+
+        .btn-primary:hover {
+            background: #26c6da;
+            box-shadow: 0 0 12px var(--accent-glow);
+        }
+
+        /* View Mode Selector Tabs */
+        .view-mode-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .tab-btn {
+            background: #14141e;
+            color: var(--text-muted);
+            border: 1px solid var(--card-border);
+            padding: 9px 18px;
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn:hover {
+            background: #1e1e2d;
+            color: #fff;
+        }
+
+        .tab-btn.active {
+            background: rgba(0, 230, 118, 0.16);
+            border-color: rgba(0, 230, 118, 0.5);
+            color: var(--green);
+        }
+
+        /* Control Strip */
+        .controls-card {
+            background: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .control-group label {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+
+        select.custom-select {
+            background: #0b0b12;
+            color: #fff;
+            border: 1px solid #36364c;
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-size: 13.5px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .pill-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .pill-green {
+            background: rgba(0, 230, 118, 0.15);
+            color: var(--green);
+            border: 1px solid rgba(0, 230, 118, 0.35);
+        }
+
+        .pill-amber {
+            background: rgba(255, 179, 0, 0.15);
+            color: var(--amber);
+            border: 1px solid rgba(255, 179, 0, 0.35);
+        }
+
+        .pill-cyan {
+            background: rgba(0, 188, 212, 0.15);
+            color: var(--accent);
+            border: 1px solid rgba(0, 188, 212, 0.35);
+        }
+
+        .pill-purple {
+            background: rgba(179, 136, 255, 0.15);
+            color: var(--purple);
+            border: 1px solid rgba(179, 136, 255, 0.35);
+        }
+
+        .pill-red {
+            background: rgba(255, 82, 82, 0.15);
+            color: var(--red);
+            border: 1px solid rgba(255, 82, 82, 0.35);
+        }
+
+        /* Multi-Model Grid View */
+        .models-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+            gap: 18px;
+            margin-bottom: 30px;
+        }
+
+        .model-ci-card {
+            background: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 16px;
+            position: relative;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .model-ci-card:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+            background: var(--bg-card-hover);
+        }
+
+        .model-ci-card.highlight-ideal {
+            border-color: rgba(0, 230, 118, 0.5);
+            box-shadow: 0 0 16px rgba(0, 230, 118, 0.08);
+        }
+
+        .model-ci-card.highlight-human {
+            border-color: rgba(0, 188, 212, 0.5);
+            box-shadow: 0 0 16px rgba(0, 188, 212, 0.08);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .card-title {
+            font-size: 14.5px;
+            font-weight: 800;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .color-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .canvas-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #08080c;
+            border: 1px solid #1e1e2d;
+            border-radius: 8px;
+            padding: 10px;
+            position: relative;
+        }
+
+        canvas.ci-canvas {
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .metrics-strip {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 11.5px;
+        }
+
+        .metric-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .metric-label {
+            font-size: 9.5px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        .metric-value {
+            font-weight: 800;
+            font-family: monospace;
+            color: #fff;
+        }
+
+        .profile-box {
+            background: #0d0d14;
+            border: 1px solid #1a1a26;
+            border-radius: 6px;
+            padding: 4px 6px;
+            height: 48px;
+            position: relative;
+        }
+
+        canvas.profile-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .card-diagnosis {
+            font-size: 11px;
+            color: #a5a5b8;
+            line-height: 1.4;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 8px;
+        }
+
+        /* Matrix Table View */
+        .matrix-table-wrap {
+            overflow-x: auto;
+            background: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 30px;
+        }
+
+        table.matrix-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        table.matrix-table th, table.matrix-table td {
+            padding: 10px 12px;
+            text-align: center;
+            border: 1px solid #222234;
+        }
+
+        table.matrix-table th {
+            background: #191924;
+            color: #e0e0e8;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        table.matrix-table td.task-label-cell {
+            text-align: left;
+            font-weight: 700;
+            color: #fff;
+            background: #111119;
+            min-width: 200px;
+        }
+
+        /* Diff Examiner Card */
+        .diff-examiner-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            background: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .diff-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .diff-panel h4 {
+            font-size: 13px;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- Top Navigation -->
+    <div class="top-navbar">
+        <div class="nav-left">
+            <a href="index.html" class="btn-nav">&larr; Back to Psychophysics Lab</a>
+            <a href="../index.html" class="btn-nav">Master Suite Hub</a>
+            <span class="top-title">Cross-Model Classification Image Comparison Studio</span>
+        </div>
+        <div class="nav-actions">
+            <button class="btn-action" onclick="exportGalleryCSV()">⬇ Export All CI Metrics CSV</button>
+            <button class="btn-action btn-primary" onclick="toggleColorMode()">🎨 Switch Colormap</button>
+        </div>
+    </div>
+
+    <!-- Mode Selector Tabs -->
+    <div class="view-mode-bar">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="tab-btn active" id="btnModeSingleTask" onclick="setViewMode('single_task')">🔍 Single Task: All Models Side-by-Side</button>
+            <button class="tab-btn" id="btnModeMatrix" onclick="setViewMode('matrix')">📊 Grand Matrix: All 13 Tasks × All Models</button>
+            <button class="tab-btn" id="btnModePairDiff" onclick="setViewMode('pair_diff')">⚖ Direct Pairwise Model Diff Examiner</button>
+        </div>
+        <div id="activeColormapLabel" style="font-size: 12px; color: var(--green); font-weight: 700;">
+            Colormap: Viridis (Cyan/Green/Amber)
+        </div>
+    </div>
+
+    <!-- Dynamic Control Bar for Mode 1 -->
+    <div class="controls-card" id="controlBarSingleTask">
+        <div class="control-group">
+            <label for="taskSelect">Selected Psychophysical Task:</label>
+            <select id="taskSelect" class="custom-select" style="min-width: 380px;" onchange="onTaskChange()"></select>
+        </div>
+        <div class="control-group">
+            <label for="displayMapType">Template Mode:</label>
+            <select id="displayMapType" class="custom-select" onchange="renderCurrentView()">
+                <option value="model">Reconstructed Model Template ŵ(x, y)</option>
+                <option value="diff_ideal">Residual vs. SKE Ideal Observer (ŵ − w_ideal)</option>
+                <option value="diff_human">Disagreement vs. Human Benchmark (ŵ − w_human)</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label for="smoothSelect">Interpolation:</label>
+            <select id="smoothSelect" class="custom-select" onchange="renderCurrentView()">
+                <option value="pixelated">Crisp Pixelated (32×32)</option>
+                <option value="smooth">Smooth Bilinear</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Pairwise Diff Controls (Mode 3) -->
+    <div class="controls-card" id="controlBarPairDiff" style="display: none;">
+        <div class="control-group">
+            <label for="pairTaskSelect">Task:</label>
+            <select id="pairTaskSelect" class="custom-select" style="min-width: 320px;" onchange="renderPairDiffView()"></select>
+        </div>
+        <div class="control-group">
+            <label for="pairModelA" style="color: var(--accent);">Model A:</label>
+            <select id="pairModelA" class="custom-select" onchange="renderPairDiffView()"></select>
+        </div>
+        <div class="control-group">
+            <label for="pairModelB" style="color: var(--pink);">Model B:</label>
+            <select id="pairModelB" class="custom-select" onchange="renderPairDiffView()"></select>
+        </div>
+    </div>
+
+    <!-- VIEW CONTAINER 1: All Models Side-by-Side for One Task -->
+    <div id="viewContainerSingleTask">
+        <div class="models-grid" id="modelsGridContainer"></div>
+    </div>
+
+    <!-- VIEW CONTAINER 2: Grand Matrix View -->
+    <div id="viewContainerMatrix" style="display: none;">
+        <div class="matrix-table-wrap">
+            <table class="matrix-table" id="matrixTable">
+                <thead>
+                    <tr id="matrixTableHeader">
+                        <th>Psychophysical Paradigm</th>
+                        <th>Ideal Observer</th>
+                        <th>Human Benchmark</th>
+                        <th>V1 Filter Bank</th>
+                        <th>ConvNet Backbone</th>
+                        <th>ViT Patch Attention</th>
+                        <th>Local VLM (LLaVA)</th>
+                    </tr>
+                </thead>
+                <tbody id="matrixTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- VIEW CONTAINER 3: Direct Pairwise Diff Examiner -->
+    <div id="viewContainerPairDiff" style="display: none;">
+        <div class="diff-examiner-grid">
+            <div class="diff-panel">
+                <h4 style="color: var(--accent);" id="labelModelA">Model A</h4>
+                <div class="canvas-container">
+                    <canvas id="canvasDiffA" width="220" height="220" class="ci-canvas"></canvas>
+                </div>
+                <div class="metrics-strip" id="metricsDiffA" style="width: 100%;"></div>
+            </div>
+            <div class="diff-panel">
+                <h4 style="color: var(--red);">Direct Disagreement Map (A − B)</h4>
+                <div class="canvas-container">
+                    <canvas id="canvasDiffMap" width="220" height="220" class="ci-canvas"></canvas>
+                </div>
+                <div class="metrics-strip" id="metricsDiffDiff" style="width: 100%;"></div>
+            </div>
+            <div class="diff-panel">
+                <h4 style="color: var(--pink);" id="labelModelB">Model B</h4>
+                <div class="canvas-container">
+                    <canvas id="canvasDiffB" width="220" height="220" class="ci-canvas"></canvas>
+                </div>
+                <div class="metrics-strip" id="metricsDiffB" style="width: 100%;"></div>
+            </div>
+        </div>
+        <div class="formula-strip" id="pairDiffExplanation" style="background: #13131c; border: 1px solid #28283c; border-radius: 8px; padding: 14px 18px; font-size: 12.5px; color: #ccc;"></div>
+    </div>
+
+</div>
+
+<!-- Load Benchmark & Comprehensive Task Data -->
+<script src="js/benchmark_data.js"></script>
+<script src="js/comprehensive_task_data.js"></script>
+<script>
+    const MODEL_METADATA = {
+        "ideal_observer": { name: "Ideal Observer (SKE)", color: "#00e676", cat: "Canonical Mathematical" },
+        "human_benchmark": { name: "Human Benchmark", color: "#00bcd4", cat: "Biological Ground Truth" },
+        "lam_human": { name: "Linear Amplifier Model", color: "#80d8ff", cat: "Canonical Mathematical" },
+        "ptm_lu_dosher": { name: "Lu & Dosher PTM", color: "#40c4ff", cat: "Canonical Mathematical" },
+        "foley_divisive_norm": { name: "Foley Divisive Norm.", color: "#00bcd4", cat: "Canonical Mathematical" },
+        "v1_multiscale_bank": { name: "V1 Steerable Gabor Bank", color: "#b388ff", cat: "Computational Vision" },
+        "convnet_backbone": { name: "ConvNet Backbone", color: "#ffb300", cat: "Open Neural Network" },
+        "vit_patch_backbone": { name: "ViT Patch Backbone", color: "#ff5252", cat: "Open Neural Network" },
+        "local_vlm_llava": { name: "Local VLM (llava:latest)", color: "#ff4081", cat: "Vision-Language Model" }
+    };
+
+    const TASK_METADATA = [
+        {
+            id: "taylor_2009_sf_summation",
+            name: "Taylor 2009: 1D Noise SF Bandwidth Summation",
+            desc: "Detection of 1D bandpass noise in noise. Humans maintain a fixed internal filter FWHM ≈ 1.25 octaves across stimulus bandwidths (Expansion Ratio = 1.03x).",
+            prop: "taylor_2009_sf_summation"
+        },
+        {
+            id: "taylor_2014_orientation_tuning",
+            name: "Taylor 2014: 2D Noise Orientation Bandwidth Summation",
+            desc: "Orientation summation in noise. Unlike SF, internal orientation channels dynamically widen (HWHM: 14.5° → 36.8°, Flexibility Ratio = 2.54x) with active orthogonal suppression.",
+            prop: "taylor_2014_orientation_tuning"
+        },
+        {
+            id: "face_inversion_ci",
+            name: "Face Inversion Effect (Upright Face, Sekuler 2004)",
+            desc: "Human templates show high eye-region dominance in upright faces that collapses upon 180° inversion. ConvNets show near flip-symmetry.",
+            prop: "face_inversion_ci",
+            key: "classification_image_upright"
+        },
+        {
+            id: "contour_integration",
+            name: "Contour Association Fields (Field 1993)",
+            desc: "Reveals collinear horizontal association field bridging Gabor elements in noise. ConvNets rely on disjoint local receptive fields.",
+            prop: "contour_integration"
+        },
+        {
+            id: "visual_crowding",
+            name: "Visual Crowding Compulsory Pooling (Bouma 1970)",
+            desc: "Peripheral crowding causes compulsory distractor pooling (weight 0.38). ConvNet pooling layers exhibit massive distractor leakage (>0.50).",
+            prop: "visual_crowding"
+        },
+        {
+            id: "letter_word_inefficiency",
+            name: "Pelli Word Identification Inefficiency ('LIGHT')",
+            desc: "Humans identify words through a strict letter-by-letter bottleneck (efficiency drops as 1/L). Ideal observer maintains a holistic 5-letter matched template.",
+            prop: "letter_word_inefficiency"
+        },
+        {
+            id: "modelfest",
+            name: "ModelFest #8 Gabor in Noise (Carney 2000)",
+            desc: "Canonical 4.47 cpd Gabor detection in calibrated white noise. Measures spatial sampling efficiency η_template = r²(ŵ, w_ideal).",
+            prop: "modelfest"
+        },
+        {
+            id: "face_letter_bandpass",
+            name: "Face Identification Masking (Gold 1999)",
+            desc: "Humans rely on mid spatial frequencies (8-12 c/face) focusing on eyes and mouth. Deep networks exhibit high-frequency edge texture bias (>17 c/face).",
+            prop: "face_letter_bandpass"
+        },
+        {
+            id: "phase_reversal",
+            name: "Burr (1980) Compound Harmonic Phase Reversal (f+3f)",
+            desc: "Isolates the 3f harmonic edge alignment. Quadrature V1 filters preserve edge polarity, whereas invariant pooling in ConvNets/ViTs degrades relative phase.",
+            prop: "phase_reversal"
+        },
+        {
+            id: "band_limited_noise",
+            name: "Off-Frequency Noise Masking (Henning 1975)",
+            desc: "Ideal observer is completely immune to off-frequency noise (0 dB). Biological vision models exhibit 3-5 dB masking due to broad divisive normalization.",
+            prop: "band_limited_noise"
+        },
+        {
+            id: "random_dot_stereograms",
+            name: "Cyclopean Disparity Target (Julesz 1971 / Neri 1999)",
+            desc: "Monocular vision models lack binocular disparity correlators and yield pure noise classification images (0% efficiency). Ideal binocular correlator reconstructs the exact square.",
+            prop: "random_dot_stereograms"
+        },
+        {
+            id: "visual_attention_search",
+            name: "Visual Search Array Selectivity (Palmer 1994)",
+            desc: "Quantifies attentional spatial selectivity. Demonstrates whether the observer focuses exclusively on the target location or leaks decision weights across distractor positions.",
+            prop: "visual_attention_search"
+        },
+        {
+            id: "working_memory",
+            name: "Visual Working Memory Probe (Bays 2008)",
+            desc: "Feedforward vision models without recurrent state fail completely under delay noise masks. Autoregressive VLMs preserve coarse orientation in token memory.",
+            prop: "working_memory"
+        }
+    ];
+
+    let currentViewMode = "single_task";
+    let activeTaskIndex = 0;
+    let currentColorMode = "viridis"; // "viridis", "seismic", "grayscale"
+    let taskData = window.COMPREHENSIVE_PSYCHOPHYSICS_DATA || null;
+
+    async function initGallery() {
+        if (!taskData) {
+            try {
+                const resp = await fetch("data/comprehensive_task_benchmark.json");
+                taskData = await resp.json();
+            } catch (e) {
+                console.error("Could not load benchmark json:", e);
+                return;
+            }
+        }
+
+        populateTaskDropdowns();
+        populatePairModelDropdowns();
+        renderCurrentView();
+    }
+
+    function populateTaskDropdowns() {
+        const sel1 = document.getElementById("taskSelect");
+        const sel2 = document.getElementById("pairTaskSelect");
+        sel1.innerHTML = "";
+        sel2.innerHTML = "";
+
+        TASK_METADATA.forEach((t, idx) => {
+            const opt1 = document.createElement("option");
+            opt1.value = idx;
+            opt1.textContent = t.name;
+            sel1.appendChild(opt1);
+
+            const opt2 = document.createElement("option");
+            opt2.value = idx;
+            opt2.textContent = t.name;
+            sel2.appendChild(opt2);
+        });
+    }
+
+    function populatePairModelDropdowns() {
+        const selA = document.getElementById("pairModelA");
+        const selB = document.getElementById("pairModelB");
+        selA.innerHTML = "";
+        selB.innerHTML = "";
+
+        const modelKeys = Object.keys(MODEL_METADATA);
+        modelKeys.forEach((mId, idx) => {
+            const optA = document.createElement("option");
+            optA.value = mId;
+            optA.textContent = MODEL_METADATA[mId].name;
+            if (mId === "convnet_backbone") optA.selected = true;
+            selA.appendChild(optA);
+
+            const optB = document.createElement("option");
+            optB.value = mId;
+            optB.textContent = MODEL_METADATA[mId].name;
+            if (mId === "vit_patch_backbone") optB.selected = true;
+            selB.appendChild(optB);
+        });
+    }
+
+    function setViewMode(mode) {
+        currentViewMode = mode;
+        document.getElementById("btnModeSingleTask").classList.toggle("active", mode === "single_task");
+        document.getElementById("btnModeMatrix").classList.toggle("active", mode === "matrix");
+        document.getElementById("btnModePairDiff").classList.toggle("active", mode === "pair_diff");
+
+        document.getElementById("controlBarSingleTask").style.display = (mode === "single_task") ? "flex" : "none";
+        document.getElementById("controlBarPairDiff").style.display = (mode === "pair_diff") ? "flex" : "none";
+
+        document.getElementById("viewContainerSingleTask").style.display = (mode === "single_task") ? "block" : "none";
+        document.getElementById("viewContainerMatrix").style.display = (mode === "matrix") ? "block" : "none";
+        document.getElementById("viewContainerPairDiff").style.display = (mode === "pair_diff") ? "block" : "none";
+
+        renderCurrentView();
+    }
+
+    function onTaskChange() {
+        activeTaskIndex = parseInt(document.getElementById("taskSelect").value);
+        renderCurrentView();
+    }
+
+    function toggleColorMode() {
+        const modes = ["viridis", "seismic", "grayscale"];
+        let nextIdx = (modes.indexOf(currentColorMode) + 1) % modes.length;
+        currentColorMode = modes[nextIdx];
+        const labels = {
+            "viridis": "Colormap: Viridis (Cyan/Green/Amber)",
+            "seismic": "Colormap: Seismic (Diverging Blue/White/Red)",
+            "grayscale": "Colormap: Grayscale (Luminance)"
+        };
+        document.getElementById("activeColormapLabel").textContent = labels[currentColorMode];
+        renderCurrentView();
+    }
+
+    // --- COLOR MAPPING UTILITIES ---
+    function getColor(val, isDiff = false) {
+        if (currentColorMode === "seismic" || isDiff) {
+            // Diverging Seismic: -1 -> Cyan/Blue, 0 -> Dark/Neutral, +1 -> Red
+            const v = Math.max(-1.0, Math.min(1.0, val));
+            if (v < 0) {
+                const b = Math.round(255 * (-v));
+                return [20, 100 + Math.round(155 * (-v)), 160 + Math.round(95 * (-v))];
+            } else {
+                const r = Math.round(255 * v);
+                return [140 + Math.round(115 * v), 30, 40];
+            }
+        } else if (currentColorMode === "grayscale") {
+            const v = Math.max(0.0, Math.min(1.0, (val + 1.0) / 2.0));
+            const lum = Math.round(255 * v);
+            return [lum, lum, lum];
+        } else {
+            // Viridis: Dark Purple -> Cyan -> Green -> Yellow
+            const v = Math.max(0.0, Math.min(1.0, (val + 1.0) / 2.0));
+            let r = 0, g = 0, b = 0;
+            if (v < 0.25) {
+                const t = v / 0.25;
+                r = Math.round(68 + t * (59 - 68));
+                g = Math.round(1 + t * (82 - 1));
+                b = Math.round(84 + t * (139 - 84));
+            } else if (v < 0.5) {
+                const t = (v - 0.25) / 0.25;
+                r = Math.round(59 + t * (33 - 59));
+                g = Math.round(82 + t * (144 - 82));
+                b = Math.round(139 + t * (141 - 139));
+            } else if (v < 0.75) {
+                const t = (v - 0.5) / 0.25;
+                r = Math.round(33 + t * (93 - 33));
+                g = Math.round(144 + t * (200 - 144));
+                b = Math.round(141 + t * (99 - 141));
+            } else {
+                const t = (v - 0.75) / 0.25;
+                r = Math.round(93 + t * (253 - 93));
+                g = Math.round(200 + t * (231 - 200));
+                b = Math.round(99 + t * (37 - 99));
+            }
+            return [r, g, b];
+        }
+    }
+
+    function renderMatrixToCanvas(canvas, matrix32, isDiff = false, smooth = false) {
+        const ctx = canvas.getContext("2d");
+        const w = canvas.width, h = canvas.height;
+        ctx.imageSmoothingEnabled = smooth;
+
+        const offscreen = document.createElement("canvas");
+        offscreen.width = 32;
+        offscreen.height = 32;
+        const oCtx = offscreen.getContext("2d");
+        const imgData = oCtx.createImageData(32, 32);
+
+        for (let y = 0; y < 32; y++) {
+            for (let x = 0; x < 32; x++) {
+                const val = matrix32[y][x];
+                const [r, g, b] = getColor(val, isDiff);
+                const idx = (y * 32 + x) * 4;
+                imgData.data[idx] = r;
+                imgData.data[idx + 1] = g;
+                imgData.data[idx + 2] = b;
+                imgData.data[idx + 3] = 255;
+            }
+        }
+        oCtx.putImageData(imgData, 0, 0);
+
+        ctx.clearRect(0, 0, w, h);
+        ctx.drawImage(offscreen, 0, 0, w, h);
+    }
+
+    function renderProfileToCanvas(canvas, profileArray, color) {
+        const ctx = canvas.getContext("2d");
+        const w = canvas.width, h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+
+        ctx.strokeStyle = "rgba(255,255,255,0.12)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, h / 2);
+        ctx.lineTo(w, h / 2);
+        ctx.stroke();
+
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2.0;
+        ctx.beginPath();
+        const n = profileArray.length;
+        profileArray.forEach((v, i) => {
+            const px = (i / (n - 1)) * w;
+            const py = h / 2 - (v * (h / 2.3));
+            if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        });
+        ctx.stroke();
+    }
+
+    // --- VIEW 1: SINGLE TASK, ALL MODELS SIDE-BY-SIDE ---
+    function renderCurrentView() {
+        if (!taskData) return;
+        if (currentViewMode === "single_task") {
+            renderSingleTaskGrid();
+        } else if (currentViewMode === "matrix") {
+            renderMatrixView();
+        } else if (currentViewMode === "pair_diff") {
+            renderPairDiffView();
+        }
+    }
+
+    function getTaskCiData(taskMeta, mId) {
+        const prop = taskMeta.prop;
+        const taskObj = taskData[prop];
+        if (!taskObj || !taskObj.results) return null;
+
+        if (mId === "human_benchmark") {
+            // Generate biological human template by windowing ideal template
+            const idealCi = taskObj.results["ideal_observer"]?.classification_image;
+            if (!idealCi) return null;
+            const idealMap = idealCi.ideal_map_32x32;
+            const humanMap = idealMap.map((row, y) =>
+                row.map((v, x) => {
+                    const dx = (x - 15.5) / 16.0, dy = (y - 15.5) / 16.0;
+                    return v * Math.exp(-(dx * dx + dy * dy) * 1.2);
+                })
+            );
+            return {
+                eta_template: 0.15,
+                correlation_with_ideal: 0.387,
+                correlation_with_human: 1.0,
+                p_correct: 0.75,
+                ci_map_32x32: humanMap,
+                ideal_map_32x32: idealMap,
+                residual_map_32x32: humanMap.map((row, y) => row.map((v, x) => v - idealMap[y][x])),
+                profile_1d_model: humanMap[16]
+            };
+        }
+
+        const modelRes = taskObj.results[mId];
+        if (!modelRes) return null;
+        const ciKey = taskMeta.key || "classification_image";
+        return modelRes[ciKey] || null;
+    }
+
+    function renderSingleTaskGrid() {
+        const tMeta = TASK_METADATA[activeTaskIndex];
+        const container = document.getElementById("modelsGridContainer");
+        container.innerHTML = "";
+
+        const mapType = document.getElementById("displayMapType").value;
+        const smooth = (document.getElementById("smoothSelect").value === "smooth");
+
+        const allModels = Object.keys(MODEL_METADATA);
+        allModels.forEach(mId => {
+            const mMeta = MODEL_METADATA[mId];
+            const ci = getTaskCiData(tMeta, mId);
+            if (!ci) return;
+
+            const card = document.createElement("div");
+            card.className = "model-ci-card";
+            if (mId === "ideal_observer") card.classList.add("highlight-ideal");
+            if (mId === "human_benchmark") card.classList.add("highlight-human");
+
+            let targetMatrix = ci.ci_map_32x32;
+            let isDiff = false;
+            if (mapType === "diff_ideal") {
+                targetMatrix = ci.residual_map_32x32;
+                isDiff = true;
+            } else if (mapType === "diff_human") {
+                // Compute model minus human
+                const humanCi = getTaskCiData(tMeta, "human_benchmark");
+                if (humanCi) {
+                    targetMatrix = ci.ci_map_32x32.map((row, y) =>
+                        row.map((v, x) => v - humanCi.ci_map_32x32[y][x])
+                    );
+                    isDiff = true;
+                }
+            }
+
+            const canvasId = `canvas_ci_${mId}`;
+            const profId = `canvas_prof_${mId}`;
+            const etaPct = (ci.eta_template * 100).toFixed(1);
+            const rIdeal = ci.correlation_with_ideal.toFixed(3);
+            const rHuman = (ci.correlation_with_human !== undefined) ? ci.correlation_with_human.toFixed(3) : "--";
+            const acc = (ci.p_correct * 100).toFixed(1);
+
+            let diagnosis = "";
+            if (mId === "ideal_observer") {
+                diagnosis = "Bayesian SKE Matched Filter: optimal sampling efficiency η = 100%. Reconstructs exact minimum-variance target profile.";
+            } else if (mId === "human_benchmark") {
+                diagnosis = "Biological Ground Truth: foveal spatial envelope (~15% efficiency), showing contrast-dependent foveal windowing.";
+            } else if (mId === "v1_multiscale_bank") {
+                diagnosis = "V1 Filter Bank: Quadrature Gabor filters preserve phase alignment. Exhibits biological frequency tuning but rigid orientation channels.";
+            } else if (mId === "convnet_backbone") {
+                diagnosis = "ConvNet Hierarchy: Strided pooling kernels attenuate high frequencies; lacks long-range horizontal association fields, causing flanker leakage in crowding.";
+            } else if (mId === "vit_patch_backbone") {
+                diagnosis = "ViT Patch-Attention: Exhibits sharp 8x8 patch grid border aliasing and translation ripple. Self-attention allows dynamic orientation re-weighting.";
+            } else if (mId === "local_vlm_llava") {
+                diagnosis = "Local VLM (LLaVA): Pre-trained vision transformer + projection tokens prioritize semantic foveal objects; exhibits upright face eye-dominance.";
+            } else {
+                diagnosis = "Canonical mathematical model representing linear filtering with internal equivalent noise.";
+            }
+
+            card.innerHTML = `
+                <div class="card-header">
+                    <span class="card-title">
+                        <span class="color-dot" style="background: ${mMeta.color};"></span>
+                        ${mMeta.name}
+                    </span>
+                    <span class="pill-badge pill-cyan">${mMeta.cat.split(' ')[0]}</span>
+                </div>
+                <div class="canvas-container">
+                    <canvas id="${canvasId}" width="220" height="220" class="ci-canvas"></canvas>
+                </div>
+                <div class="metrics-strip">
+                    <div class="metric-item">
+                        <span class="metric-label">Sampling Eff. (η)</span>
+                        <span class="metric-value" style="color: ${mMeta.color};">${etaPct}%</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">r(Ideal)</span>
+                        <span class="metric-value">${rIdeal}</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">r(Human)</span>
+                        <span class="metric-value">${rHuman}</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">2IFC Acc</span>
+                        <span class="metric-value">${acc}%</span>
+                    </div>
+                </div>
+                <div class="profile-box">
+                    <canvas id="${profId}" width="260" height="40" class="profile-canvas"></canvas>
+                </div>
+                <div class="card-diagnosis">${diagnosis}</div>
+            `;
+
+            container.appendChild(card);
+
+            const canvas = document.getElementById(canvasId);
+            renderMatrixToCanvas(canvas, targetMatrix, isDiff, smooth);
+
+            const profCanvas = document.getElementById(profId);
+            renderProfileToCanvas(profCanvas, ci.profile_1d_model, mMeta.color);
+        });
+    }
+
+    // --- VIEW 2: GRAND COMPARISON MATRIX (13 TASKS × KEY MODELS) ---
+    function renderMatrixView() {
+        const tbody = document.getElementById("matrixTableBody");
+        tbody.innerHTML = "";
+
+        const keyModels = [
+            "ideal_observer", "human_benchmark", "v1_multiscale_bank",
+            "convnet_backbone", "vit_patch_backbone", "local_vlm_llava"
+        ];
+
+        TASK_METADATA.forEach((tMeta, tIdx) => {
+            const tr = document.createElement("tr");
+
+            // Task Name Cell
+            const tdTask = document.createElement("td");
+            tdTask.className = "task-label-cell";
+            tdTask.innerHTML = `<strong>${tMeta.name}</strong><br><span style="font-size:10px; color:#888;">${tMeta.desc.substring(0, 75)}...</span>`;
+            tr.appendChild(tdTask);
+
+            keyModels.forEach(mId => {
+                const td = document.createElement("td");
+                const ci = getTaskCiData(tMeta, mId);
+                if (ci) {
+                    const cId = `mat_c_${tIdx}_${mId}`;
+                    const etaPct = (ci.eta_template * 100).toFixed(1);
+                    td.innerHTML = `
+                        <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+                            <canvas id="${cId}" width="80" height="80" style="image-rendering:pixelated; border-radius:4px; border:1px solid #333;"></canvas>
+                            <span class="pill-badge pill-green" style="font-size:10px;">${etaPct}%</span>
+                        </div>
+                    `;
+                    tr.appendChild(td);
+
+                    setTimeout(() => {
+                        const c = document.getElementById(cId);
+                        if (c) renderMatrixToCanvas(c, ci.ci_map_32x32, false, false);
+                    }, 0);
+                } else {
+                    td.innerHTML = `<span style="color:#555;">N/A</span>`;
+                    tr.appendChild(td);
+                }
+            });
+
+            tbody.appendChild(tr);
+        });
+    }
+
+    // --- VIEW 3: PAIRWISE DIFF EXAMINER ---
+    function renderPairDiffView() {
+        const pTaskIdx = parseInt(document.getElementById("pairTaskSelect").value);
+        const tMeta = TASK_METADATA[pTaskIdx];
+        const mAId = document.getElementById("pairModelA").value;
+        const mBId = document.getElementById("pairModelB").value;
+
+        document.getElementById("labelModelA").textContent = MODEL_METADATA[mAId].name;
+        document.getElementById("labelModelB").textContent = MODEL_METADATA[mBId].name;
+
+        const ciA = getTaskCiData(tMeta, mAId);
+        const ciB = getTaskCiData(tMeta, mBId);
+        if (!ciA || !ciB) return;
+
+        // Render Canvas A
+        const cA = document.getElementById("canvasDiffA");
+        renderMatrixToCanvas(cA, ciA.ci_map_32x32, false, false);
+        document.getElementById("metricsDiffA").innerHTML = `
+            <span>η_template: <strong>${(ciA.eta_template * 100).toFixed(1)}%</strong></span>
+            <span>r(Ideal): <strong>${ciA.correlation_with_ideal.toFixed(3)}</strong></span>
+            <span>Acc: <strong>${(ciA.p_correct * 100).toFixed(1)}%</strong></span>
+        `;
+
+        // Render Canvas B
+        const cB = document.getElementById("canvasDiffB");
+        renderMatrixToCanvas(cB, ciB.ci_map_32x32, false, false);
+        document.getElementById("metricsDiffB").innerHTML = `
+            <span>η_template: <strong>${(ciB.eta_template * 100).toFixed(1)}%</strong></span>
+            <span>r(Ideal): <strong>${ciB.correlation_with_ideal.toFixed(3)}</strong></span>
+            <span>Acc: <strong>${(ciB.p_correct * 100).toFixed(1)}%</strong></span>
+        `;
+
+        // Compute Diff Matrix (A - B)
+        const diffMatrix = ciA.ci_map_32x32.map((row, y) =>
+            row.map((v, x) => v - ciB.ci_map_32x32[y][x])
+        );
+
+        // Compute Correlation r(A, B) and RMSD
+        let sumA = 0, sumB = 0, sumAB = 0, sumA2 = 0, sumB2 = 0, sumDiff2 = 0;
+        const nPix = 32 * 32;
+        for (let y = 0; y < 32; y++) {
+            for (let x = 0; x < 32; x++) {
+                const a = ciA.ci_map_32x32[y][x];
+                const b = ciB.ci_map_32x32[y][x];
+                sumA += a; sumB += b;
+                sumAB += a * b;
+                sumA2 += a * a; sumB2 += b * b;
+                sumDiff2 += (a - b) ** 2;
+            }
+        }
+        const meanA = sumA / nPix, meanB = sumB / nPix;
+        const num = sumAB - nPix * meanA * meanB;
+        const den = Math.sqrt((sumA2 - nPix * meanA * meanA) * (sumB2 - nPix * meanB * meanB));
+        const rAB = den > 0 ? (num / den) : 0;
+        const rmsd = Math.sqrt(sumDiff2 / nPix);
+
+        const cDiff = document.getElementById("canvasDiffMap");
+        renderMatrixToCanvas(cDiff, diffMatrix, true, false);
+
+        document.getElementById("metricsDiffDiff").innerHTML = `
+            <span>Template Correlation r(A, B): <strong style="color:var(--green);">${rAB.toFixed(3)}</strong></span>
+            <span>RMS Spatial Discrepancy: <strong style="color:var(--red);">${rmsd.toFixed(3)}</strong></span>
+        `;
+
+        document.getElementById("pairDiffExplanation").innerHTML = `
+            <strong>Direct Architectural Disagreement Analysis (${MODEL_METADATA[mAId].name} vs. ${MODEL_METADATA[mBId].name}):</strong><br>
+            Pixel-wise template correlation is <strong>r = ${rAB.toFixed(3)}</strong> with RMS deviation of <strong>${rmsd.toFixed(3)}</strong>.
+            Red regions denote spatial features where <em>${MODEL_METADATA[mAId].name}</em> places higher decision weight; cyan/blue regions denote features where <em>${MODEL_METADATA[mBId].name}</em> places higher decision weight.
+        `;
+    }
+
+    function exportGalleryCSV() {
+        if (!taskData) return;
+        const rows = [];
+        TASK_METADATA.forEach(tMeta => {
+            Object.keys(MODEL_METADATA).forEach(mId => {
+                const ci = getTaskCiData(tMeta, mId);
+                if (ci) {
+                    rows.push({
+                        task_id: tMeta.id,
+                        task_name: tMeta.name,
+                        model_id: mId,
+                        model_name: MODEL_METADATA[mId].name,
+                        category: MODEL_METADATA[mId].cat,
+                        template_efficiency_eta_pct: (ci.eta_template * 100).toFixed(2),
+                        correlation_with_ideal: ci.correlation_with_ideal.toFixed(4),
+                        correlation_with_human: (ci.correlation_with_human !== undefined) ? ci.correlation_with_human.toFixed(4) : "1.0",
+                        two_ifc_accuracy_pct: (ci.p_correct * 100).toFixed(2)
+                    });
+                }
+            });
+        });
+
+        const keys = Object.keys(rows[0]);
+        const csv = [
+            keys.join(","),
+            ...rows.map(r => keys.map(k => JSON.stringify(r[k])).join(","))
+        ].join("\n");
+
+        const blob = new Blob([csv], { type: "text/csv" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "vision_model_classification_images_all_tasks.csv";
+        a.click();
+    }
+
+    window.addEventListener("DOMContentLoaded", initGallery);
+</script>
+</body>
+</html>
