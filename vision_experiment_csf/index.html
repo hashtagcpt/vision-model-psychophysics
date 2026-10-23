@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Contrast Sensitivity Function (CSF) — Two-Interval Forced Choice (2IFC 2AFC)</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div class="app-container">
+
+        <!-- SCREEN 1: SETUP & CALIBRATION -->
+        <div id="screenSetup" class="card">
+            <div style="margin-bottom: 16px;">
+                <a href="../index.html" class="btn-secondary" style="display: inline-flex; align-items: center; text-decoration: none; font-size: 13px; font-weight: 600; padding: 6px 14px;">
+                    ← Return to Suite Hub
+                </a>
+            </div>
+            <div class="title-header">
+                <h1>Contrast Sensitivity Function (CSF)</h1>
+                <p>Two-Interval Forced Choice (2IFC 2AFC) &bull; Constant Envelope Size &bull; Fullscreen Mid-Grey</p>
+                <div class="badge-row">
+                    <span class="badge">Two-Interval Forced Choice (2IFC)</span>
+                    <span class="badge">Spatial Bounding Box</span>
+                    <span class="badge">Non-Overlapping Fixation</span>
+                    <span class="badge">Trial-to-Trial Random Phase</span>
+                    <span class="badge">Constant Envelope (&sigma; = 0.5&deg;)</span>
+                    <span class="badge">Watson (2017) QUEST+</span>
+                    <span class="badge" style="background: rgba(0, 188, 212, 0.15); border-color: rgba(0, 188, 212, 0.4); color: #00bcd4;">WebGL2 Hardware Shaders</span>
+                    <span class="badge" style="background: rgba(0, 230, 118, 0.15); border-color: rgba(0, 230, 118, 0.4); color: #00e676;">VSync Sub-ms Timing (120ms)</span>
+                </div>
+            </div>
+
+            <!-- Automated Hardware Diagnostic Suite Report Container -->
+            <div id="hardwareReportContainer"></div>
+
+            <div class="info-box">
+                <strong>2-Alternative Forced Choice (2IFC) Paradigm:</strong>
+                <br>&bull; <strong>Interval 1:</strong> Marked by <strong>Beep 1 (500 Hz, 80 ms)</strong> &implies; <strong>120 ms presentation</strong>.
+                <br>&bull; <strong>Inter-Stimulus Interval (ISI):</strong> 400 ms blank mid-grey.
+                <br>&bull; <strong>Interval 2:</strong> Marked by <strong>Beep 2 (750 Hz, 80 ms)</strong> &implies; <strong>120 ms presentation</strong>.
+                <br>&bull; <strong>Trial Feedback:</strong> High chime + green outline (correct) vs. low buzz + red outline (incorrect).
+                <br>The stimulus is framed inside a <strong>spatial bounding box</strong> with <strong>non-overlapping outer fixation crosshairs</strong>. Grating carrier phase is <strong>randomized trial-to-trial</strong>. Indicate which interval contained the grating: <strong>First Interval</strong> or <strong>Second Interval</strong>.
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group participant-group">
+                    <label for="participantId">Observer / Subject Code <span class="required-star">*</span></label>
+                    <div class="input-with-button" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <input type="text" id="participantId" placeholder="e.g. OBS_01" autocomplete="off" spellcheck="false" required style="flex: 1; min-width: 170px;">
+                        <button type="button" id="btnGenSubjectCode" class="btn-sm-action" title="Auto-generate next sequential observer code">
+                            &#9881; Auto-Generate
+                        </button>
+                        <select id="selectExistingSubject" class="btn-sm-action" style="background: #1e293b; color: #38bdf8; border: 1px solid #475569; padding: 7px 10px; font-weight: 600; cursor: pointer; max-width: 220px;" title="Select an existing observer from previous sessions">
+                            <option value="" disabled selected>👤 Select Existing User</option>
+                        </select>
+                    </div>
+                    <span class="form-note">Unique observer identifier required for session tagging, CSV metadata header &amp; file naming.</span>
+                    <div id="subjectCodeError" class="input-error-msg" style="display: none;"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="envelopeSize">Constant Envelope Size (&sigma;)</label>
+                    <select id="envelopeSize">
+                        <option value="0.3">0.30&deg; (&plusmn;2&sigma; = 0.6&deg; - Compact)</option>
+                        <option value="0.5" selected>0.50&deg; (&plusmn;2&sigma; = 1.0&deg; - Recommended Standard)</option>
+                        <option value="0.75">0.75&deg; (&plusmn;2&sigma; = 1.5&deg; - Medium)</option>
+                        <option value="1.0">1.00&deg; (&plusmn;2&sigma; = 2.0&deg; - Large)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="sfRange">Spatial Frequency Range</label>
+                    <select id="sfRange">
+                        <option value="ultrawide" selected>0.125 to 32 cpd (8 Octaves - Maximum Span: 9 SFs)</option>
+                        <option value="extended">0.25 to 32 cpd (7 Octaves - High-Res: 8 SFs)</option>
+                        <option value="standard">0.5 to 16 cpd (5 Octaves - Clinical: 6 SFs)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="trialsPerCondition">Trials per Spatial Frequency</label>
+                    <select id="trialsPerCondition">
+                        <option value="10">10 trials / SF (Quick Demo)</option>
+                        <option value="15">15 trials / SF (Standard)</option>
+                        <option value="20" selected>20 trials / SF (Recommended)</option>
+                        <option value="25">25 trials / SF (High Precision)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;">
+                        <label for="viewingDistance">Viewing Distance (cm)</label>
+                        <div style="display: flex; gap: 4px;">
+                            <button type="button" class="btn-sm-action" onclick="window.screenCalibrator && window.screenCalibrator.openCalibrationModal()" style="font-size: 11px; padding: 2px 7px; color: #ffb300; border-color: rgba(255, 179, 0, 0.4);">💳 Size</button>
+                            <button type="button" class="btn-sm-action" onclick="window.perceptualCalibrator && window.perceptualCalibrator.openModal('timing')" style="font-size: 11px; padding: 2px 7px; color: #00bcd4; border-color: rgba(0, 188, 212, 0.4);">⏱ Timing</button>
+                            <button type="button" class="btn-sm-action" onclick="window.perceptualCalibrator && window.perceptualCalibrator.openModal('contrast')" style="font-size: 11px; padding: 2px 7px; color: #00e676; border-color: rgba(0, 230, 118, 0.4);">🌓 Contrast</button>
+                        </div>
+                    </div>
+                    <input type="number" id="viewingDistance" value="57.3" step="0.1">
+                    <span class="form-note">57.3 cm &implies; 1 cm on screen = 1&deg; visual angle</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="displayDpi">Display Hardware Profile</label>
+                    <select id="displayDpi">
+                        <option value="267" selected>Surface Pro (267 DPI / 105 px/cm)</option>
+                        <option value="141">Standard Laptop (141 DPI / 55 px/cm)</option>
+                        <option value="96">Standard Desktop Monitor (96 DPI / 38 px/cm)</option>
+                        <option value="163">Retina / 4K Monitor (163 DPI / 64 px/cm)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="bitDepth">Framebuffer Bit-Depth</label>
+                    <select id="bitDepth">
+                        <option value="8">8-Bit Standard (256 gray levels, min step = 0.78%)</option>
+                        <option value="10" selected>10-Bit Wide-Gamut (1024 gray levels, min step = 0.19%)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Sub-LSB Contrast Dithering</label>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="enableDithering" checked>
+                        <label for="enableDithering" style="font-weight: normal; font-size: 13px;">
+                            Spatial noise dithering (guarantees sub-LSB continuous modulation down to C &sim; 0.1%)
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <button id="btnStart" class="btn-primary">Launch Fullscreen 2IFC CSF Experiment</button>
+        </div>
+
+        <!-- SCREEN 2: ACTIVE FULLSCREEN 2IFC EXPERIMENT -->
+        <div id="screenExperiment">
+            <!-- Non-intrusive Minimalist HUD -->
+            <div class="experiment-hud">
+                <div class="hud-progress">
+                    <div class="hud-pill" id="hudProgressText">Trial 0 / 120</div>
+                    <div class="hud-bar-container">
+                        <div id="hudProgressBar" class="hud-bar-fill"></div>
+                    </div>
+                </div>
+                <div class="hud-pill" id="hudConditionInfo">2IFC Task | Dual Beeps Active</div>
+                <button id="btnExitFullscreen" class="btn-exit-fullscreen">Exit (Esc)</button>
+            </div>
+
+            <!-- Fullscreen Mid-Grey Canvas -->
+            <canvas id="experimentCanvas"></canvas>
+
+            <!-- 2IFC Bottom Response Controls (Interval 1 vs Interval 2) -->
+            <div class="response-controls-2ifc">
+                <button id="btnInterval1" class="btn-2ifc btn-interval-1" disabled>
+                    <div>First Interval</div>
+                    <span class="subtext">Key: 1 / &larr; / F</span>
+                </button>
+                <button id="btnInterval2" class="btn-2ifc btn-interval-2" disabled>
+                    <div>Second Interval</div>
+                    <span class="subtext">Key: 2 / &rarr; / J</span>
+                </button>
+            </div>
+
+            <div class="keyboard-hint-overlay">
+                Identify target interval: Press <span class="kbd">1</span> / <span class="kbd">&larr;</span> / <span class="kbd">F</span> (First) &bull; Press <span class="kbd">2</span> / <span class="kbd">&rarr;</span> / <span class="kbd">J</span> (Second)
+            </div>
+        </div>
+
+        <!-- SCREEN 3: RESULTS & CSF PLOT -->
+        <div id="screenResults" class="card">
+            <div class="title-header">
+                <h1>Contrast Sensitivity Function (CSF) Results</h1>
+                <p>Empirical thresholds estimated via Watson (2017) QUEST+ (Two-Interval Forced Choice 2AFC)</p>
+            </div>
+
+            <div id="csvAutoDownloadBanner" class="download-banner" style="display: none;">
+                <span class="banner-icon">&#10004;</span>
+                <span id="csvAutoDownloadText">Experiment dataset automatically exported to CSV.</span>
+            </div>
+
+            <div class="results-grid">
+                <div class="plot-wrapper">
+                    <canvas id="csfPlotCanvas"></canvas>
+                </div>
+
+                <div class="fit-card">
+                    <div id="fitSummaryText"></div>
+                </div>
+
+                <div class="info-box" style="margin-bottom: 0; width: 100%;">
+                    <strong>Display Bit-Depth & Sub-LSB Resolution:</strong>
+                    The red dashed line marks the physical 8-bit quantization threshold (S = 128, Contrast = 0.78%).
+                    Data points above this line demonstrate the sub-LSB contrast sensitivity resolved via 10-bit hardware & spatial noise dithering.
+                </div>
+
+                <div class="export-actions">
+                    <button id="btnDownloadFullCSV" class="btn-primary" style="flex: 1 1 100%; margin-bottom: 4px;">
+                        &#128190; Download Complete Dataset (.CSV)
+                    </button>
+                    <button id="btnDownloadTrialCSV" class="btn-secondary">Download Trial Log (CSV)</button>
+                    <button id="btnDownloadSummaryCSV" class="btn-secondary">Download CSF Summary (CSV)</button>
+                    <button id="btnDownloadJSON" class="btn-secondary">Download Session (JSON)</button>
+                    <button id="btnDownloadPlotPNG" class="btn-secondary">Save CSF Plot (PNG)</button>
+                    <button id="btnRestart" class="btn-secondary" style="width: auto;">Test Again</button>
+                    <a href="../index.html" class="btn-primary" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; padding: 10px 18px;">
+                        ← Return to Suite Hub
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="../vision_shared/js/subject_manager.js"></script>
+    <script src="../vision_shared/js/screen_calibrator.js"></script>
+    <script src="../vision_shared/js/webgl_stimulus_engine.js"></script>
+    <script src="../vision_shared/js/perceptual_calibration.js"></script>
+    <script src="js/hardware_checker.js"></script>
+    <script src="js/questplus.js"></script>
+    <script src="js/gabor_renderer.js"></script>
+    <script src="js/csf_exporter.js"></script>
+    <script src="js/experiment_csf.js"></script>
+</body>
+</html>

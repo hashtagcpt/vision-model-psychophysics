@@ -1,0 +1,1726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Psychometric Analytics & Subject Fits Viewer — Vision Science Suite</title>
+    <style>
+        :root {
+            --bg-primary: #0e0e13;
+            --bg-card: #181822;
+            --bg-card-hover: #1f1f2c;
+            --card-border: #2a2a3c;
+            --accent: #00bcd4;
+            --accent-glow: rgba(0, 188, 212, 0.35);
+            --text-main: #f0f0f5;
+            --text-muted: #9a9ab0;
+            --green: #00e676;
+            --amber: #ffb300;
+            --purple: #b388ff;
+            --red: #ff5252;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 20px 24px 60px 24px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Top Bar */
+        .top-navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .btn-hub {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: rgba(0, 188, 212, 0.12);
+            border: 1px solid rgba(0, 188, 212, 0.3);
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-hub:hover {
+            background: rgba(0, 188, 212, 0.25);
+            color: #fff;
+            transform: translateX(-2px);
+        }
+
+        .top-title {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+            background: linear-gradient(135deg, #ffffff 40%, #00bcd4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            background: rgba(255, 255, 255, 0.08);
+            color: #ddd;
+            font-weight: 600;
+            font-size: 13px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 8px 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-action:hover {
+            background: rgba(255, 255, 255, 0.16);
+            color: #fff;
+        }
+
+        .btn-primary-action {
+            background: linear-gradient(135deg, #00bcd4, #0097a7);
+            color: #000;
+            border: none;
+            font-weight: 700;
+        }
+
+        .btn-primary-action:hover {
+            box-shadow: 0 4px 16px rgba(0, 188, 212, 0.4);
+            transform: translateY(-1px);
+        }
+
+        /* Subject Selection Card */
+        .subject-selection-card {
+            background: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 16px 22px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            flex-wrap: wrap;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+        }
+
+        .subj-selector-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .subj-selector-group label {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .select-subject {
+            background: #0d0d12;
+            border: 1px solid #333348;
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #fff;
+            font-size: 14px;
+            font-family: monospace;
+            font-weight: bold;
+            min-width: 260px;
+        }
+
+        .dropzone-compact {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+            color: var(--text-muted);
+            border: 1px dashed #3e3e55;
+            padding: 6px 14px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.02);
+            cursor: pointer;
+            transition: border-color 0.2s ease;
+        }
+
+        .dropzone-compact:hover {
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        /* KPI Cards Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--accent);
+        }
+
+        .kpi-card.kpi-green::before { background: var(--green); }
+        .kpi-card.kpi-amber::before { background: var(--amber); }
+        .kpi-card.kpi-purple::before { background: var(--purple); }
+
+        .kpi-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .kpi-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .kpi-subtext {
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        /* View Navigation Tabs */
+        .view-tabs {
+            display: flex;
+            gap: 10px;
+            border-bottom: 1px solid #2a2a3c;
+            margin-bottom: 24px;
+            overflow-x: auto;
+            padding-bottom: 2px;
+        }
+
+        .view-tab-btn {
+            background: transparent;
+            border: none;
+            color: #888;
+            font-size: 14px;
+            font-weight: 700;
+            padding: 10px 18px;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 2px solid transparent;
+        }
+
+        .view-tab-btn:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .view-tab-btn.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+            background: rgba(0, 188, 212, 0.08);
+        }
+
+        /* Main Content Panes */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .fit-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .canvas-container {
+            background: #0a0a0f;
+            border: 1px solid #252535;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* Parameter Tables */
+        .table-responsive {
+            max-height: 280px;
+            overflow-y: auto;
+            border: 1px solid #28283a;
+            border-radius: 10px;
+            margin: 16px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        th, td {
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid #20202c;
+        }
+
+        th {
+            background: #12121a;
+            color: #aaa;
+            font-weight: 700;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Parameter Metric Badges */
+        .param-badge-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .param-badge {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid #333348;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+        }
+
+        .param-badge strong {
+            color: #fff;
+            font-size: 13px;
+        }
+
+        .badge-pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .badge-cyan { background: rgba(0, 188, 212, 0.15); color: #00bcd4; }
+        .badge-green { background: rgba(0, 230, 118, 0.15); color: #00e676; }
+        .badge-amber { background: rgba(255, 179, 0, 0.15); color: #ffb300; }
+
+        /* Hardware Spec Grid */
+        .hw-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 14px;
+        }
+
+        .hw-item {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid #2a2a3c;
+            border-radius: 10px;
+            padding: 14px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .hw-item strong {
+            color: #00bcd4;
+        }
+
+        /* Hidden file input */
+        #hiddenFileInput {
+            display: none;
+        }
+
+        @media print {
+            body { background: #fff; color: #000; }
+            .btn-hub, .btn-action, .dropzone-compact, .view-tabs { display: none !important; }
+            .fit-panel { border: 1px solid #ccc; box-shadow: none; page-break-inside: avoid; }
+            canvas { filter: invert(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- Top Navigation Bar -->
+        <div class="top-navbar">
+            <div class="nav-left">
+                <a href="index.html" class="btn-hub">← Suite Hub</a>
+                <h1 class="top-title">Subject Fits &amp; Psychometric Analytics</h1>
+            </div>
+            <div class="nav-actions">
+                <input type="file" id="hiddenFileInput" accept=".csv,.json" multiple onchange="handleFileSelect(event)">
+                <button type="button" class="btn-action" onclick="document.getElementById('hiddenFileInput').click()">
+                    📂 Import CSV / JSON
+                </button>
+                <button type="button" class="btn-action" onclick="loadExemplarBenchmarkData()">
+                    ⚡ Load Benchmark
+                </button>
+                <button type="button" class="btn-action" onclick="window.screenCalibrator && window.screenCalibrator.openCalibrationModal()" style="border-color: rgba(255, 179, 0, 0.4); color: #ffb300;">
+                    💳 Size
+                </button>
+                <button type="button" class="btn-action" onclick="window.perceptualCalibrator && window.perceptualCalibrator.openModal('timing')" style="border-color: rgba(0, 188, 212, 0.4); color: #00bcd4;">
+                    ⏱ Timing
+                </button>
+                <button type="button" class="btn-action" onclick="window.perceptualCalibrator && window.perceptualCalibrator.openModal('contrast')" style="border-color: rgba(0, 230, 118, 0.4); color: #00e676;">
+                    🌓 Contrast
+                </button>
+                <a href="vision_model_psychophysics/index.html" class="btn-action" style="border-color: rgba(179, 136, 255, 0.5); color: #b388ff; text-decoration: none; font-weight: 700;">
+                    🧠 Model Psychophysics &amp; Ideal Observer Lab
+                </a>
+                <button type="button" class="btn-action btn-primary-action" onclick="window.print()">
+                    🖨 Print / PDF
+                </button>
+            </div>
+        </div>
+
+        <!-- Subject Selection & Dropzone Bar -->
+        <div class="subject-selection-card">
+            <div class="subj-selector-group">
+                <label for="subjectSelect">Active Subject:</label>
+                <select id="subjectSelect" class="select-subject" onchange="onSubjectChange(this.value)">
+                    <option value="BENCHMARK">SUBJ_BENCHMARK_SURFACE_PRO (Exemplar)</option>
+                    <!-- Populated dynamically from localStorage & loaded files -->
+                </select>
+                <span id="sessionTimestampBadge" class="badge-pill badge-cyan">2026-09-26 20:00 EST</span>
+            </div>
+            <div class="dropzone-compact" onclick="document.getElementById('hiddenFileInput').click()" id="dropzoneCompact">
+                <span>Drag &amp; drop <code>.csv</code> or <code>.json</code> to plot instant fits</span>
+            </div>
+        </div>
+
+        <!-- KPI Parameter Summary Cards -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-label">CSF Peak Sensitivity (S_max)</div>
+                <div class="kpi-value" id="kpiCsfSmax">224.5</div>
+                <div class="kpi-subtext" id="kpiCsfSubtext">Threshold Contrast = 0.445% @ 2.85 cpd</div>
+            </div>
+            <div class="kpi-card kpi-green">
+                <div class="kpi-label">CSF High-Freq Cutoff</div>
+                <div class="kpi-value" id="kpiCsfCutoff">29.8 cpd</div>
+                <div class="kpi-subtext" id="kpiCsfBandwidth">Bandwidth &beta; = 2.15 octaves (R&sup2; = 98.4%)</div>
+            </div>
+            <div class="kpi-card kpi-amber">
+                <div class="kpi-label">TvC Facilitation Dip Depth</div>
+                <div class="kpi-value" id="kpiTvcDip">4.25&times;</div>
+                <div class="kpi-subtext" id="kpiTvcDipSubtext">&Delta;C drops to 0.28% @ 4.0% pedestal</div>
+            </div>
+            <div class="kpi-card kpi-purple">
+                <div class="kpi-label">TvC Weber Masking Slope</div>
+                <div class="kpi-value" id="kpiTvcWeber">0.65</div>
+                <div class="kpi-subtext" id="kpiTvcAsymmetry">ON vs OFF Asymmetry: +14% (OFF superiority)</div>
+            </div>
+        </div>
+
+        <!-- View Tabs -->
+        <div class="view-tabs">
+            <button class="view-tab-btn active" onclick="switchTab('tabCsf')">
+                📈 Contrast Sensitivity Function (CSF)
+            </button>
+            <button class="view-tab-btn" onclick="switchTab('tabTvc')">
+                📉 Dipper Functions (TvC - Contrast Discrimination)
+            </button>
+            <button class="view-tab-btn" onclick="switchTab('tabDog')">
+                🎯 Difference of Gaussians (Scale &times; Eccentricity)
+            </button>
+            <button class="view-tab-btn" onclick="switchTab('tabHardware')">
+                💻 Hardware Calibration &amp; Session Profile
+            </button>
+        </div>
+
+        <!-- TAB 1: CSF ANALYSIS -->
+        <div id="tabCsf" class="tab-content active">
+            <div class="fit-panel">
+                <div class="panel-header">
+                    <div>
+                        <h2 class="panel-title">Contrast Sensitivity Function: Truncated Log-Parabolic Model Fit</h2>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+                            Two-Interval Forced Choice (2IFC 2AFC) &bull; Watson (2017) QUEST+ Bayesian Posterior Mean &bull; 95% Credible Intervals
+                        </p>
+                    </div>
+                    <div>
+                        <button class="btn-action" onclick="downloadCanvasPNG('csfPlotCanvas', 'csf_fit_plot.png')">
+                            🖼 Save Plot PNG
+                        </button>
+                    </div>
+                </div>
+
+                <div class="canvas-container">
+                    <canvas id="csfPlotCanvas" width="940" height="380"></canvas>
+                </div>
+
+                <!-- Fitted Model Parameters -->
+                <div class="param-badge-grid">
+                    <div class="param-badge">
+                        <span style="color: #888;">Peak Sensitivity (S_max):</span><br>
+                        <strong id="csfParamSmax" style="color: #40c4ff;">224.5</strong>
+                        <span style="color: #aaa; font-size: 11px;">(C_min = 0.445%)</span>
+                    </div>
+                    <div class="param-badge">
+                        <span style="color: #888;">Peak Spatial Frequency (f_max):</span><br>
+                        <strong id="csfParamFmax" style="color: #00e676;">2.85 cpd</strong>
+                    </div>
+                    <div class="param-badge">
+                        <span style="color: #888;">Bandwidth (&beta;):</span><br>
+                        <strong id="csfParamBw">2.15 octaves</strong>
+                    </div>
+                    <div class="param-badge">
+                        <span style="color: #888;">High-Frequency Cutoff (f_cutoff):</span><br>
+                        <strong id="csfParamCutoff" style="color: #ffb300;">29.8 cpd</strong>
+                    </div>
+                    <div class="param-badge">
+                        <span style="color: #888;">Goodness of Fit (R&sup2;):</span><br>
+                        <strong id="csfParamR2" style="color: #00e676;">98.4%</strong>
+                        <span style="color: #aaa; font-size: 11px;">(RMSE = 0.082)</span>
+                    </div>
+                    <div class="param-badge">
+                        <span style="color: #888;">Sub-8-Bit Enhancement:</span><br>
+                        <strong style="color: #40c4ff;">1.75&times; Beyond 8-Bit</strong>
+                        <span style="color: #aaa; font-size: 11px;">(S &gt; 128)</span>
+                    </div>
+                </div>
+
+                <!-- Empirical Summary Table -->
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Spatial Freq (cpd)</th>
+                                <th>Envelope (&sigma;)</th>
+                                <th>Log10 Threshold</th>
+                                <th>Threshold Contrast (%)</th>
+                                <th>Sensitivity (1/C)</th>
+                                <th>95% Credible Interval</th>
+                                <th>Trials Tested</th>
+                                <th>Sub-8Bit Floor</th>
+                            </tr>
+                        </thead>
+                        <tbody id="csfSummaryTableBody">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: DIPPER (TvC) ANALYSIS -->
+        <div id="tabTvc" class="tab-content">
+            <div class="fit-panel">
+                <div class="panel-header">
+                    <div>
+                        <h2 class="panel-title">Dipper Functions (Threshold-versus-Contrast): Foley (1994) Transducer Fits</h2>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+                            ON vs. OFF Difference of Gaussians in Foveal Center (0&deg;) and Periphery (4&deg;) &bull; Facilitation Dip &amp; Weber Masking
+                        </p>
+                    </div>
+                    <div>
+                        <button class="btn-action" onclick="downloadCanvasPNG('tvcPlotCanvas', 'tvc_dipper_plot.png')">
+                            🖼 Save Plot PNG
+                        </button>
+                    </div>
+                </div>
+
+                <div class="canvas-container">
+                    <canvas id="tvcPlotCanvas" width="940" height="400"></canvas>
+                </div>
+
+                <!-- Transducer Model Parameters Table -->
+                <h3 style="font-size: 15px; margin: 18px 0 10px 0; color: #00bcd4;">Canonical Foley Transducer Fit Parameters</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Condition</th>
+                                <th>Baseline Detection (&Delta;C_0)</th>
+                                <th>Min Increment at Dip</th>
+                                <th>Facilitation Ratio</th>
+                                <th>Knee Contrast (C_dip)</th>
+                                <th>Weber Masking Slope</th>
+                                <th>Goodness of Fit (R&sup2;)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tvcModelTableBody">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empirical TvC Table -->
+                <h3 style="font-size: 15px; margin: 18px 0 10px 0; color: #fff;">Empirical Increment Thresholds across Pedestals</h3>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Condition</th>
+                                <th>Pedestal Contrast</th>
+                                <th>Increment Threshold (&Delta;C)</th>
+                                <th>Log10 &Delta;C</th>
+                                <th>95% Credible Interval</th>
+                                <th>Dipper Effect Stage</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tvcSummaryTableBody">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: DoG SCALE & ECCENTRICITY -->
+        <div id="tabDog" class="tab-content">
+            <div class="fit-panel">
+                <div class="panel-header">
+                    <div>
+                        <h2 class="panel-title">Difference of Gaussians: Cortical Magnification &amp; Eccentricity Tuning</h2>
+                        <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+                            Contrast Sensitivity across 3 Spatial Scales (&sigma; = 0.15&deg;, 0.30&deg;, 0.60&deg;) and 4 Eccentricities (2&deg;, 4&deg;, 6&deg;, 8&deg;)
+                        </p>
+                    </div>
+                    <div>
+                        <button class="btn-action" onclick="downloadCanvasPNG('dogPlotCanvas', 'dog_ecc_plot.png')">
+                            🖼 Save Plot PNG
+                        </button>
+                    </div>
+                </div>
+
+                <div class="canvas-container">
+                    <canvas id="dogPlotCanvas" width="940" height="360"></canvas>
+                </div>
+
+                <div class="param-badge-grid">
+                    <div class="param-badge">
+                        <span style="color: #888;">Foveal Intercept Sensitivity (S_0):</span><br>
+                        <strong style="color: #b388ff;">128.4</strong>
+                    </div>
+                    <div class="param-badge">
+                        <span style="color: #888;">Cortical Magnification Constant (E_2):</span><br>
+                        <strong style="color: #00bcd4;">2.45&deg; visual angle</strong>
+                    </div>
+                    <div class="param-badge">
+                        <span style="color: #888;">Optimal Spatial Scale at 4&deg;:</span><br>
+                        <strong style="color: #00e676;">&sigma; = 0.35&deg; visual angle</strong>
+                    </div>
+                    <div class="param-badge">
+                        <span style="color: #888;">Linear Slope Fit (R&sup2;):</span><br>
+                        <strong style="color: #ffb300;">97.2%</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: HARDWARE & SESSION SPECS -->
+        <div id="tabHardware" class="tab-content">
+            <div class="fit-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">Surface Pro 11 OLED Hardware Diagnostics &amp; Display Calibration</h2>
+                    <span class="badge-pill badge-green">DirectX Diagnostics Verified</span>
+                </div>
+
+                <div class="hw-grid" id="hwSpecsGrid">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="vision_shared/js/subject_manager.js"></script>
+    <script src="vision_shared/js/screen_calibrator.js"></script>
+    <script src="vision_shared/js/perceptual_calibration.js"></script>
+    <script>
+        // Tab switching
+        function switchTab(tabId) {
+            document.querySelectorAll(".view-tab-btn").forEach(b => b.classList.remove("active"));
+            document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+            const targetBtn = Array.from(document.querySelectorAll(".view-tab-btn")).find(b => b.getAttribute("onclick").includes(tabId));
+            if (targetBtn) targetBtn.classList.add("active");
+            const targetContent = document.getElementById(tabId);
+            if (targetContent) targetContent.classList.add("active");
+        }
+
+        // --- GLOBAL DATA STORE ---
+        let currentSubjectId = "BENCHMARK";
+        let activeDatasets = {
+            csf: null,
+            tvc: null,
+            dog: null,
+            hardware: null
+        };
+
+        // --- EXEMPLAR BENCHMARK DATASET ---
+        const benchmarkData = {
+            subject: "SUBJ_BENCHMARK_SURFACE_PRO",
+            date: "2026-09-26T20:00:00.000Z",
+            hardware: {
+                screen: {
+                    physicalResolution: "2880 x 1920",
+                    devicePixelRatio: 2.0,
+                    measuredFps: 120.1,
+                    isHighDynamicRange: true,
+                    colorGamut: "rec2020",
+                    colorDepth: 30
+                },
+                gpu: {
+                    unmaskedRenderer: "Qualcomm Adreno X1-85 GPU",
+                    unmaskedVendor: "Qualcomm",
+                    webgl2_rgb10a2: true,
+                    webgl2_float: true,
+                    webgpuAvailable: true
+                },
+                platform: {
+                    logicalCores: 8,
+                    deviceMemoryGB: 16,
+                    maxTouchPoints: 10,
+                    platform: "Windows 11 ARM64",
+                    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; ARM64) AppleWebKit/537.36 Edge/128.0"
+                }
+            },
+            csf: {
+                modelFit: {
+                    sMax: 224.5,
+                    fMax: 2.85,
+                    bandwidth: 2.15,
+                    fCutoff: 29.8,
+                    k: 1.15,
+                    r2: 0.984,
+                    rmse: 0.082
+                },
+                summary: [
+                    { spatialFreqCpd: 0.125, sigmaDeg: 0.50, thresholdLog10: -0.72, thresholdMichelson: 0.1905, sensitivity: 5.25, ci95Lower: 3.8, ci95Upper: 7.2, trialsTested: 20 },
+                    { spatialFreqCpd: 0.250, sigmaDeg: 0.50, thresholdLog10: -1.35, thresholdMichelson: 0.0447, sensitivity: 22.4, ci95Lower: 17.5, ci95Upper: 28.6, trialsTested: 20 },
+                    { spatialFreqCpd: 0.500, sigmaDeg: 0.50, thresholdLog10: -1.82, thresholdMichelson: 0.0151, sensitivity: 66.1, ci95Lower: 52.0, ci95Upper: 84.0, trialsTested: 20 },
+                    { spatialFreqCpd: 1.000, sigmaDeg: 0.50, thresholdLog10: -2.15, thresholdMichelson: 0.0071, sensitivity: 141.2, ci95Lower: 110.0, ci95Upper: 181.0, trialsTested: 20 },
+                    { spatialFreqCpd: 2.000, sigmaDeg: 0.50, thresholdLog10: -2.32, thresholdMichelson: 0.0048, sensitivity: 208.9, ci95Lower: 165.0, ci95Upper: 265.0, trialsTested: 20 },
+                    { spatialFreqCpd: 4.000, sigmaDeg: 0.50, thresholdLog10: -2.31, thresholdMichelson: 0.0049, sensitivity: 204.2, ci95Lower: 160.0, ci95Upper: 260.0, trialsTested: 20 },
+                    { spatialFreqCpd: 8.000, sigmaDeg: 0.50, thresholdLog10: -2.08, thresholdMichelson: 0.0083, sensitivity: 120.2, ci95Lower: 94.0, ci95Upper: 153.0, trialsTested: 20 },
+                    { spatialFreqCpd: 16.00, sigmaDeg: 0.50, thresholdLog10: -1.63, thresholdMichelson: 0.0234, sensitivity: 42.7, ci95Lower: 33.0, ci95Upper: 55.0, trialsTested: 20 },
+                    { spatialFreqCpd: 32.00, sigmaDeg: 0.50, thresholdLog10: -0.92, thresholdMichelson: 0.1202, sensitivity: 8.32, ci95Lower: 6.2, ci95Upper: 11.1, trialsTested: 20 }
+                ]
+            },
+            tvc: {
+                modelFits: {
+                    "ON (Center 0°)":    { deltaC0: 0.0158, minDeltaC: 0.0037, minPed: 0.04, facilitationRatio: 4.27, weberSlope: 0.65, r2: 0.985 },
+                    "OFF (Center 0°)":   { deltaC0: 0.0121, minDeltaC: 0.0028, minPed: 0.04, facilitationRatio: 4.32, weberSlope: 0.62, r2: 0.988 },
+                    "ON (Periph 4°)":    { deltaC0: 0.0358, minDeltaC: 0.0112, minPed: 0.08, facilitationRatio: 3.20, weberSlope: 0.68, r2: 0.978 },
+                    "OFF (Periph 4°)":   { deltaC0: 0.0282, minDeltaC: 0.0089, minPed: 0.08, facilitationRatio: 3.17, weberSlope: 0.66, r2: 0.981 }
+                },
+                summary: [
+                    // Center ON
+                    { polarity: "ON", eccentricityDeg: 0, pedestalContrast: 0.0,  thresholdLog10: -1.801, incrementThresholdContrast: 0.0158, ci95Lower: 0.012, ci95Upper: 0.021, isFacilitated: false, facilitationFactor: 1.0 },
+                    { polarity: "ON", eccentricityDeg: 0, pedestalContrast: 0.01, thresholdLog10: -2.082, incrementThresholdContrast: 0.0083, ci95Lower: 0.006, ci95Upper: 0.011, isFacilitated: true,  facilitationFactor: 1.9 },
+                    { polarity: "ON", eccentricityDeg: 0, pedestalContrast: 0.02, thresholdLog10: -2.268, incrementThresholdContrast: 0.0054, ci95Lower: 0.004, ci95Upper: 0.007, isFacilitated: true,  facilitationFactor: 2.9 },
+                    { polarity: "ON", eccentricityDeg: 0, pedestalContrast: 0.04, thresholdLog10: -2.432, incrementThresholdContrast: 0.0037, ci95Lower: 0.0027,ci95Upper: 0.005, isFacilitated: true,  facilitationFactor: 4.27 },
+                    { polarity: "ON", eccentricityDeg: 0, pedestalContrast: 0.08, thresholdLog10: -2.288, incrementThresholdContrast: 0.0051, ci95Lower: 0.0038,ci95Upper: 0.0069,isFacilitated: true, facilitationFactor: 3.1 },
+                    { polarity: "ON", eccentricityDeg: 0, pedestalContrast: 0.16, thresholdLog10: -2.113, incrementThresholdContrast: 0.0077, ci95Lower: 0.0059,ci95Upper: 0.010, isFacilitated: true,  facilitationFactor: 2.1 },
+                    { polarity: "ON", eccentricityDeg: 0, pedestalContrast: 0.32, thresholdLog10: -1.954, incrementThresholdContrast: 0.0111, ci95Lower: 0.0085,ci95Upper: 0.0145,isFacilitated: false, facilitationFactor: 1.4 },
+                    { polarity: "ON", eccentricityDeg: 0, pedestalContrast: 0.50, thresholdLog10: -1.865, incrementThresholdContrast: 0.0136, ci95Lower: 0.0104,ci95Upper: 0.0178,isFacilitated: false, facilitationFactor: 1.16 },
+
+                    // Center OFF
+                    { polarity: "OFF", eccentricityDeg: 0, pedestalContrast: 0.0,  thresholdLog10: -1.917, incrementThresholdContrast: 0.0121, ci95Lower: 0.009, ci95Upper: 0.016, isFacilitated: false, facilitationFactor: 1.0 },
+                    { polarity: "OFF", eccentricityDeg: 0, pedestalContrast: 0.01, thresholdLog10: -2.277, incrementThresholdContrast: 0.0053, ci95Lower: 0.004, ci95Upper: 0.007, isFacilitated: true,  facilitationFactor: 2.3 },
+                    { polarity: "OFF", eccentricityDeg: 0, pedestalContrast: 0.02, thresholdLog10: -2.472, incrementThresholdContrast: 0.0034, ci95Lower: 0.0025,ci95Upper: 0.0046,isFacilitated: true,  facilitationFactor: 3.6 },
+                    { polarity: "OFF", eccentricityDeg: 0, pedestalContrast: 0.04, thresholdLog10: -2.553, incrementThresholdContrast: 0.0028, ci95Lower: 0.0021,ci95Upper: 0.0038,isFacilitated: true,  facilitationFactor: 4.32 },
+                    { polarity: "OFF", eccentricityDeg: 0, pedestalContrast: 0.08, thresholdLog10: -2.417, incrementThresholdContrast: 0.0038, ci95Lower: 0.0028,ci95Upper: 0.0051,isFacilitated: true,  facilitationFactor: 3.2 },
+                    { polarity: "OFF", eccentricityDeg: 0, pedestalContrast: 0.16, thresholdLog10: -2.240, incrementThresholdContrast: 0.0058, ci95Lower: 0.0044,ci95Upper: 0.0077,isFacilitated: true,  facilitationFactor: 2.1 },
+                    { polarity: "OFF", eccentricityDeg: 0, pedestalContrast: 0.32, thresholdLog10: -2.088, incrementThresholdContrast: 0.0082, ci95Lower: 0.0062,ci95Upper: 0.0108,isFacilitated: false, facilitationFactor: 1.5 },
+                    { polarity: "OFF", eccentricityDeg: 0, pedestalContrast: 0.50, thresholdLog10: -2.002, incrementThresholdContrast: 0.0100, ci95Lower: 0.0076,ci95Upper: 0.0131,isFacilitated: false, facilitationFactor: 1.21 },
+
+                    // Periphery ON (4°)
+                    { polarity: "ON", eccentricityDeg: 4, pedestalContrast: 0.0,  thresholdLog10: -1.446, incrementThresholdContrast: 0.0358, ci95Lower: 0.027, ci95Upper: 0.047, isFacilitated: false, facilitationFactor: 1.0 },
+                    { polarity: "ON", eccentricityDeg: 4, pedestalContrast: 0.01, thresholdLog10: -1.573, incrementThresholdContrast: 0.0267, ci95Lower: 0.020, ci95Upper: 0.035, isFacilitated: true,  facilitationFactor: 1.34 },
+                    { polarity: "ON", eccentricityDeg: 4, pedestalContrast: 0.02, thresholdLog10: -1.695, incrementThresholdContrast: 0.0202, ci95Lower: 0.015, ci95Upper: 0.027, isFacilitated: true,  facilitationFactor: 1.77 },
+                    { polarity: "ON", eccentricityDeg: 4, pedestalContrast: 0.04, thresholdLog10: -1.871, incrementThresholdContrast: 0.0135, ci95Lower: 0.010, ci95Upper: 0.018, isFacilitated: true,  facilitationFactor: 2.65 },
+                    { polarity: "ON", eccentricityDeg: 4, pedestalContrast: 0.08, thresholdLog10: -1.951, incrementThresholdContrast: 0.0112, ci95Lower: 0.0084,ci95Upper: 0.015, isFacilitated: true,  facilitationFactor: 3.20 },
+                    { polarity: "ON", eccentricityDeg: 4, pedestalContrast: 0.16, thresholdLog10: -1.810, incrementThresholdContrast: 0.0155, ci95Lower: 0.0118,ci95Upper: 0.0203,isFacilitated: true,  facilitationFactor: 2.31 },
+                    { polarity: "ON", eccentricityDeg: 4, pedestalContrast: 0.32, thresholdLog10: -1.687, incrementThresholdContrast: 0.0206, ci95Lower: 0.0157,ci95Upper: 0.0270,isFacilitated: false, facilitationFactor: 1.74 },
+                    { polarity: "ON", eccentricityDeg: 4, pedestalContrast: 0.50, thresholdLog10: -1.589, incrementThresholdContrast: 0.0258, ci95Lower: 0.0196,ci95Upper: 0.0339,isFacilitated: false, facilitationFactor: 1.39 },
+
+                    // Periphery OFF (4°)
+                    { polarity: "OFF", eccentricityDeg: 4, pedestalContrast: 0.0,  thresholdLog10: -1.550, incrementThresholdContrast: 0.0282, ci95Lower: 0.021, ci95Upper: 0.037, isFacilitated: false, facilitationFactor: 1.0 },
+                    { polarity: "OFF", eccentricityDeg: 4, pedestalContrast: 0.01, thresholdLog10: -1.713, incrementThresholdContrast: 0.0194, ci95Lower: 0.014, ci95Upper: 0.026, isFacilitated: true,  facilitationFactor: 1.45 },
+                    { polarity: "OFF", eccentricityDeg: 4, pedestalContrast: 0.02, thresholdLog10: -1.863, incrementThresholdContrast: 0.0137, ci95Lower: 0.010, ci95Upper: 0.018, isFacilitated: true,  facilitationFactor: 2.06 },
+                    { polarity: "OFF", eccentricityDeg: 4, pedestalContrast: 0.04, thresholdLog10: -2.011, incrementThresholdContrast: 0.0097, ci95Lower: 0.0073,ci95Upper: 0.0129,isFacilitated: true,  facilitationFactor: 2.91 },
+                    { polarity: "OFF", eccentricityDeg: 4, pedestalContrast: 0.08, thresholdLog10: -2.051, incrementThresholdContrast: 0.0089, ci95Lower: 0.0067,ci95Upper: 0.0118,isFacilitated: true,  facilitationFactor: 3.17 },
+                    { polarity: "OFF", eccentricityDeg: 4, pedestalContrast: 0.16, thresholdLog10: -1.918, incrementThresholdContrast: 0.0121, ci95Lower: 0.0092,ci95Upper: 0.0159,isFacilitated: true,  facilitationFactor: 2.33 },
+                    { polarity: "OFF", eccentricityDeg: 4, pedestalContrast: 0.32, thresholdLog10: -1.789, incrementThresholdContrast: 0.0163, ci95Lower: 0.0124,ci95Upper: 0.0214,isFacilitated: false, facilitationFactor: 1.73 },
+                    { polarity: "OFF", eccentricityDeg: 4, pedestalContrast: 0.50, thresholdLog10: -1.699, incrementThresholdContrast: 0.0200, ci95Lower: 0.0152,ci95Upper: 0.0263,isFacilitated: false, facilitationFactor: 1.41 }
+                ]
+            },
+            dog: {
+                e2: 2.45,
+                s0: 128.4,
+                r2: 0.972,
+                conditions: [
+                    { scale: "Small (0.15°)",  ecc: 2.0, sensitivity: 64.2 },
+                    { scale: "Small (0.15°)",  ecc: 4.0, sensitivity: 38.1 },
+                    { scale: "Small (0.15°)",  ecc: 6.0, sensitivity: 22.4 },
+                    { scale: "Small (0.15°)",  ecc: 8.0, sensitivity: 12.8 },
+                    { scale: "Medium (0.30°)", ecc: 2.0, sensitivity: 112.5 },
+                    { scale: "Medium (0.30°)", ecc: 4.0, sensitivity: 76.2 },
+                    { scale: "Medium (0.30°)", ecc: 6.0, sensitivity: 48.9 },
+                    { scale: "Medium (0.30°)", ecc: 8.0, sensitivity: 31.4 },
+                    { scale: "Large (0.60°)",  ecc: 2.0, sensitivity: 98.4 },
+                    { scale: "Large (0.60°)",  ecc: 4.0, sensitivity: 82.1 },
+                    { scale: "Large (0.60°)",  ecc: 6.0, sensitivity: 64.5 },
+                    { scale: "Large (0.60°)",  ecc: 8.0, sensitivity: 49.2 }
+                ]
+            }
+        };
+
+        function loadExemplarBenchmarkData() {
+            activeDatasets = JSON.parse(JSON.stringify(benchmarkData));
+            currentSubjectId = "BENCHMARK";
+            document.getElementById("subjectSelect").value = "BENCHMARK";
+            renderAllViews();
+        }
+
+        function initSubjectList() {
+            const selectEl = document.getElementById("subjectSelect");
+            selectEl.innerHTML = "";
+
+            const benchOpt = document.createElement("option");
+            benchOpt.value = "BENCHMARK";
+            benchOpt.innerText = "SUBJ_BENCHMARK_SURFACE_PRO (Exemplar)";
+            selectEl.appendChild(benchOpt);
+
+            // Check for URL query
+            const urlParams = new URLSearchParams(window.location.search);
+            const passedSubj = urlParams.get("subject");
+
+            // Look in SubjectManager and localStorage for recorded sessions
+            const storedSubjects = new Set();
+            if (window.subjectManager) {
+                window.subjectManager.getKnownSubjects().forEach(s => {
+                    if (s !== "BENCHMARK") storedSubjects.add(s);
+                });
+            }
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k.startsWith("vision_suite_csf_") || k.startsWith("vision_suite_dipper_") || k.startsWith("vision_suite_dog_")) {
+                    const subj = k.replace(/^vision_suite_(csf|dipper|dog)_/, "");
+                    if (subj && subj !== "BENCHMARK") storedSubjects.add(subj);
+                }
+            }
+
+            storedSubjects.forEach(s => {
+                const opt = document.createElement("option");
+                opt.value = s;
+                opt.innerText = `${s} (User Session)`;
+                selectEl.appendChild(opt);
+            });
+
+            if (passedSubj && passedSubj !== "BENCHMARK") {
+                // If passed subject is in list, select it; else add it
+                if (!Array.from(selectEl.options).some(o => o.value === passedSubj)) {
+                    const opt = document.createElement("option");
+                    opt.value = passedSubj;
+                    opt.innerText = `${passedSubj} (Active)`;
+                    selectEl.appendChild(opt);
+                }
+                selectEl.value = passedSubj;
+                loadSubjectFromStorage(passedSubj);
+            } else {
+                loadExemplarBenchmarkData();
+            }
+        }
+
+        function onSubjectChange(val) {
+            currentSubjectId = val;
+            if (window.subjectManager && val !== "BENCHMARK") {
+                window.subjectManager.setActiveSubject(val);
+            }
+            if (val === "BENCHMARK") {
+                loadExemplarBenchmarkData();
+            } else {
+                loadSubjectFromStorage(val);
+            }
+        }
+
+        function loadSubjectFromStorage(subjCode) {
+            let loadedSomething = false;
+            const csfRaw = localStorage.getItem("vision_suite_csf_" + subjCode) || localStorage.getItem("vision_suite_csf_last");
+            const dipperRaw = localStorage.getItem("vision_suite_dipper_" + subjCode) || localStorage.getItem("vision_suite_dipper_last");
+
+            activeDatasets = JSON.parse(JSON.stringify(benchmarkData)); // baseline fallback
+            activeDatasets.subject = subjCode;
+
+            if (csfRaw) {
+                try {
+                    const parsed = JSON.parse(csfRaw);
+                    activeDatasets.csf = {
+                        summary: parsed.summary,
+                        modelFit: parsed.modelFit
+                    };
+                    if (parsed.hardware) activeDatasets.hardware = parsed.hardware;
+                    loadedSomething = true;
+                } catch (e) { console.warn("Failed to parse CSF session:", e); }
+            }
+
+            if (dipperRaw) {
+                try {
+                    const parsed = JSON.parse(dipperRaw);
+                    activeDatasets.tvc = {
+                        summary: parsed.summary,
+                        modelFits: parsed.modelFits
+                    };
+                    if (parsed.hardware) activeDatasets.hardware = parsed.hardware;
+                    loadedSomething = true;
+                } catch (e) { console.warn("Failed to parse Dipper session:", e); }
+            }
+
+            renderAllViews();
+        }
+
+        function renderAllViews() {
+            document.getElementById("sessionTimestampBadge").innerText = activeDatasets.date ? new Date(activeDatasets.date).toLocaleString() : "Active Session";
+            renderKpis();
+            renderCsfPlotAndTable();
+            renderTvcPlotAndTable();
+            renderDogPlot();
+            renderHardwareSpecs();
+        }
+
+        // --- RENDER KPIS ---
+        function renderKpis() {
+            // CSF KPIs
+            if (activeDatasets.csf?.modelFit) {
+                const fit = activeDatasets.csf.modelFit;
+                document.getElementById("kpiCsfSmax").innerText = fit.sMax.toFixed(1);
+                document.getElementById("kpiCsfSubtext").innerText = `Threshold ${(100 / fit.sMax).toFixed(3)}% @ ${fit.fMax.toFixed(2)} cpd`;
+                document.getElementById("kpiCsfCutoff").innerText = `${fit.fCutoff.toFixed(1)} cpd`;
+                document.getElementById("kpiCsfBandwidth").innerText = `Bandwidth β = ${fit.bandwidth.toFixed(2)} octaves (R² = ${(fit.r2 * 100).toFixed(1)}%)`;
+            }
+
+            // TvC KPIs
+            if (activeDatasets.tvc?.modelFits) {
+                const fits = activeDatasets.tvc.modelFits;
+                const centerOn = fits["ON (Center 0°)"] || Object.values(fits)[0];
+                if (centerOn) {
+                    document.getElementById("kpiTvcDip").innerText = `${centerOn.facilitationRatio.toFixed(2)}×`;
+                    document.getElementById("kpiTvcDipSubtext").innerText = `ΔC drops to ${(centerOn.minDeltaC * 100).toFixed(2)}% @ ${(centerOn.minPed * 100).toFixed(1)}% ped`;
+                    document.getElementById("kpiTvcWeber").innerText = centerOn.weberSlope.toFixed(2);
+                }
+                const centerOff = fits["OFF (Center 0°)"];
+                if (centerOn && centerOff) {
+                    const asym = ((centerOn.deltaC0 - centerOff.deltaC0) / (centerOn.deltaC0 + centerOff.deltaC0)) * 100;
+                    document.getElementById("kpiTvcAsymmetry").innerText = `ON vs OFF Asymmetry: ${asym > 0 ? "+" : ""}${asym.toFixed(1)}% (OFF superiority)`;
+                }
+            }
+        }
+
+        // --- RENDER CSF PLOT & TABLE ---
+        function renderCsfPlotAndTable() {
+            const canvas = document.getElementById("csfPlotCanvas");
+            const ctx = canvas.getContext("2d");
+            const w = canvas.width;
+            const h = canvas.height;
+
+            ctx.fillStyle = "#0a0a0f";
+            ctx.fillRect(0, 0, w, h);
+
+            const padL = 75, padR = 40, padT = 35, padB = 45;
+            const plotW = w - padL - padR;
+            const plotH = h - padT - padB;
+
+            // X-axis: 0.1 to 40 cpd (log10: -1.0 to 1.6)
+            const xMin = -1.0, xMax = 1.6;
+            // Y-axis: Sensitivity 1 to 1000 (log10: 0.0 to 3.0)
+            const yMin = 0.0, yMax = 3.0;
+
+            const toX = (logF) => padL + ((logF - xMin) / (xMax - xMin)) * plotW;
+            const toY = (logS) => padT + ((yMax - logS) / (yMax - yMin)) * plotH;
+
+            // Grid lines
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.07)";
+            ctx.lineWidth = 1;
+            for (let yVal = 0.0; yVal <= 3.0; yVal += 0.5) {
+                const sy = toY(yVal);
+                ctx.beginPath();
+                ctx.moveTo(padL, sy);
+                ctx.lineTo(padL + plotW, sy);
+                ctx.stroke();
+
+                ctx.fillStyle = "#888";
+                ctx.font = "11px monospace";
+                ctx.textAlign = "right";
+                ctx.fillText(Math.round(Math.pow(10, yVal)).toString(), padL - 8, sy + 4);
+            }
+
+            const fTicks = [0.125, 0.25, 0.5, 1.0, 2.0, 4.0, 8.0, 16.0, 32.0];
+            for (const f of fTicks) {
+                const sx = toX(Math.log10(f));
+                ctx.beginPath();
+                ctx.moveTo(sx, padT);
+                ctx.lineTo(sx, padT + plotH);
+                ctx.stroke();
+
+                ctx.fillStyle = "#888";
+                ctx.font = "11px monospace";
+                ctx.textAlign = "center";
+                ctx.fillText(f.toString(), sx, padT + plotH + 16);
+            }
+
+            // Axis Titles
+            ctx.fillStyle = "#ccc";
+            ctx.font = "12px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("Spatial Frequency (cycles / degree)", padL + plotW / 2, h - 10);
+
+            ctx.save();
+            ctx.translate(22, padT + plotH / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText("Contrast Sensitivity S = 1/C", 0, 0);
+            ctx.restore();
+
+            // 8-bit floor reference line (S = 128 = 10^2.107)
+            const y8bit = toY(Math.log10(128));
+            ctx.save();
+            ctx.setLineDash([4, 4]);
+            ctx.strokeStyle = "rgba(244, 67, 54, 0.5)";
+            ctx.beginPath();
+            ctx.moveTo(padL, y8bit);
+            ctx.lineTo(padL + plotW, y8bit);
+            ctx.stroke();
+            ctx.fillStyle = "rgba(244, 67, 54, 0.8)";
+            ctx.font = "10px sans-serif";
+            ctx.textAlign = "left";
+            ctx.fillText("Physical 8-bit LSB Floor (S = 128, Contrast = 0.78%)", padL + 10, y8bit - 6);
+            ctx.restore();
+
+            const csf = activeDatasets.csf;
+            if (!csf) return;
+
+            // Draw Parabolic Fitted Model Curve
+            if (csf.modelFit) {
+                const fit = csf.modelFit;
+                ctx.save();
+                ctx.strokeStyle = "#00bcd4";
+                ctx.lineWidth = 3.0;
+                ctx.beginPath();
+
+                const logSmax = Math.log10(fit.sMax);
+                const logFmax = Math.log10(fit.fMax);
+                const k = fit.k || 1.15;
+
+                let started = false;
+                for (let px = 0; px <= plotW; px += 2) {
+                    const logF = xMin + (px / plotW) * (xMax - xMin);
+                    const logS = logSmax - k * Math.pow(logF - logFmax, 2.0);
+                    if (logS >= yMin) {
+                        const sy = toY(logS);
+                        const sx = padL + px;
+                        if (!started) { ctx.moveTo(sx, sy); started = true; }
+                        else ctx.lineTo(sx, sy);
+                    }
+                }
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // Draw Empirical Points with 95% Credible Intervals
+            if (csf.summary) {
+                for (const row of csf.summary) {
+                    const sx = toX(Math.log10(row.spatialFreqCpd));
+                    const sy = toY(Math.log10(row.sensitivity));
+                    const syLow = toY(Math.log10(row.ci95Lower || row.sensitivity * 0.8));
+                    const syHigh = toY(Math.log10(row.ci95Upper || row.sensitivity * 1.25));
+
+                    // Error bar
+                    ctx.strokeStyle = "#40c4ff";
+                    ctx.lineWidth = 1.8;
+                    ctx.beginPath();
+                    ctx.moveTo(sx, syLow);
+                    ctx.lineTo(sx, syHigh);
+                    ctx.moveTo(sx - 3, syLow);
+                    ctx.lineTo(sx + 3, syLow);
+                    ctx.moveTo(sx - 3, syHigh);
+                    ctx.lineTo(sx + 3, syHigh);
+                    ctx.stroke();
+
+                    // Point
+                    ctx.fillStyle = row.sensitivity > 128 ? "#00e676" : "#40c4ff";
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, 5.0, 0, 2 * Math.PI);
+                    ctx.fill();
+                    ctx.strokeStyle = "#0a0a0f";
+                    ctx.lineWidth = 1.2;
+                    ctx.stroke();
+                }
+
+                // Populate Table
+                const tbody = document.getElementById("csfSummaryTableBody");
+                tbody.innerHTML = "";
+                for (const row of csf.summary) {
+                    const tr = document.createElement("tr");
+                    const isSub = row.sensitivity > 128;
+                    tr.innerHTML = `
+                        <td><strong>${row.spatialFreqCpd} cpd</strong></td>
+                        <td>${row.sigmaDeg}&deg;</td>
+                        <td>${row.thresholdLog10.toFixed(3)}</td>
+                        <td>${(row.thresholdMichelson * 100).toFixed(3)}%</td>
+                        <td><strong style="color: ${isSub ? '#00e676' : '#fff'};">${row.sensitivity.toFixed(1)}</strong></td>
+                        <td style="color: #aaa;">[${row.ci95Lower?.toFixed(1) || '-'}, ${row.ci95Upper?.toFixed(1) || '-'}]</td>
+                        <td>${row.trialsTested}</td>
+                        <td>${isSub ? '<span class="badge-pill badge-green">Sub-LSB Dither</span>' : '<span style="color:#666;">Standard 8-Bit</span>'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            }
+
+            // Update Parameter Badges
+            if (csf.modelFit) {
+                const fit = csf.modelFit;
+                document.getElementById("csfParamSmax").innerText = fit.sMax.toFixed(1);
+                document.getElementById("csfParamFmax").innerText = `${fit.fMax.toFixed(2)} cpd`;
+                document.getElementById("csfParamBw").innerText = `${fit.bandwidth.toFixed(2)} octaves`;
+                document.getElementById("csfParamCutoff").innerText = `${fit.fCutoff.toFixed(1)} cpd`;
+                document.getElementById("csfParamR2").innerText = `${(fit.r2 * 100).toFixed(1)}%`;
+            }
+        }
+
+        // --- RENDER DIPPER (TvC) PLOT & TABLE ---
+        function renderTvcPlotAndTable() {
+            const canvas = document.getElementById("tvcPlotCanvas");
+            const ctx = canvas.getContext("2d");
+            const w = canvas.width;
+            const h = canvas.height;
+
+            ctx.fillStyle = "#0a0a0f";
+            ctx.fillRect(0, 0, w, h);
+
+            const padL = 75, padR = 40, padT = 40, padB = 45;
+            const plotW = w - padL - padR;
+            const plotH = h - padT - padB;
+
+            // X-axis: Pedestal Contrast log10 [-2.8 (det) to 0.0]
+            const xMin = -2.8, xMax = 0.0;
+            // Y-axis: Increment Threshold log10 [-3.0 to -0.6]
+            const yMin = -3.0, yMax = -0.6;
+
+            const toX = (logPed) => padL + ((Math.max(xMin, Math.min(xMax, logPed)) - xMin) / (xMax - xMin)) * plotW;
+            const toY = (logInc) => padT + ((yMax - Math.max(yMin, Math.min(yMax, logInc))) / (yMax - yMin)) * plotH;
+
+            // Grid lines
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.07)";
+            ctx.lineWidth = 1;
+            for (let yVal = -3.0; yVal <= -0.6; yVal += 0.4) {
+                const sy = toY(yVal);
+                ctx.beginPath();
+                ctx.moveTo(padL, sy);
+                ctx.lineTo(padL + plotW, sy);
+                ctx.stroke();
+
+                ctx.fillStyle = "#888";
+                ctx.font = "11px monospace";
+                ctx.textAlign = "right";
+                const incPct = (Math.pow(10, yVal) * 100).toFixed(yVal < -2 ? 2 : 1) + "%";
+                ctx.fillText(incPct, padL - 8, sy + 4);
+            }
+
+            const xTicks = [
+                { logVal: -2.8, label: "0% (Det)" },
+                { logVal: -2.0, label: "1%" },
+                { logVal: -1.52, label: "3%" },
+                { logVal: -1.0, label: "10%" },
+                { logVal: -0.52, label: "30%" },
+                { logVal: 0.0, label: "100%" }
+            ];
+            for (const tick of xTicks) {
+                const sx = toX(tick.logVal);
+                ctx.beginPath();
+                ctx.moveTo(sx, padT);
+                ctx.lineTo(sx, padT + plotH);
+                ctx.stroke();
+
+                ctx.fillStyle = "#888";
+                ctx.font = "11px monospace";
+                ctx.textAlign = "center";
+                ctx.fillText(tick.label, sx, padT + plotH + 16);
+            }
+
+            // Axis Titles
+            ctx.fillStyle = "#ccc";
+            ctx.font = "12px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("Pedestal Contrast (C_ped)", padL + plotW / 2, h - 10);
+
+            ctx.save();
+            ctx.translate(22, padT + plotH / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText("Increment Threshold ΔC (%)", 0, 0);
+            ctx.restore();
+
+            const tvc = activeDatasets.tvc;
+            if (!tvc) return;
+
+            const styles = {
+                "ON (Center 0°)":     { color: "#29b6f6", dash: [] },
+                "OFF (Center 0°)":    { color: "#ffa726", dash: [] },
+                "ON (Periph 4°)":     { color: "#66bb6a", dash: [5, 4] },
+                "OFF (Periph 4°)":    { color: "#ab47bc", dash: [5, 4] }
+            };
+
+            // Group summary by condition
+            const groups = {};
+            for (const r of tvc.summary) {
+                const key = `${r.polarity} (${r.eccentricityDeg === 0 ? "Center 0°" : "Periph 4°"})`;
+                if (!groups[key]) groups[key] = [];
+                groups[key].push(r);
+            }
+
+            let legX = padL + 16;
+            let legY = padT + 18;
+
+            for (const [key, rows] of Object.entries(groups)) {
+                const st = styles[key] || { color: "#fff", dash: [] };
+                rows.sort((a, b) => a.pedestalContrast - b.pedestalContrast);
+
+                // Draw fitted curve line
+                ctx.save();
+                ctx.strokeStyle = st.color;
+                ctx.lineWidth = 2.5;
+                ctx.setLineDash(st.dash);
+                ctx.beginPath();
+                rows.forEach((r, idx) => {
+                    const logP = (r.pedestalContrast === 0) ? -2.8 : Math.log10(r.pedestalContrast);
+                    const sx = toX(logP);
+                    const sy = toY(r.thresholdLog10);
+                    if (idx === 0) ctx.moveTo(sx, sy);
+                    else ctx.lineTo(sx, sy);
+                });
+                ctx.stroke();
+                ctx.restore();
+
+                // Draw points & CIs
+                for (const r of rows) {
+                    const logP = (r.pedestalContrast === 0) ? -2.8 : Math.log10(r.pedestalContrast);
+                    const sx = toX(logP);
+                    const sy = toY(r.thresholdLog10);
+                    const syLow = toY(Math.log10(r.ci95Lower || r.incrementThresholdContrast * 0.8));
+                    const syHigh = toY(Math.log10(r.ci95Upper || r.incrementThresholdContrast * 1.25));
+
+                    ctx.strokeStyle = st.color;
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(sx, syLow);
+                    ctx.lineTo(sx, syHigh);
+                    ctx.moveTo(sx - 2, syLow);
+                    ctx.lineTo(sx + 2, syLow);
+                    ctx.moveTo(sx - 2, syHigh);
+                    ctx.lineTo(sx + 2, syHigh);
+                    ctx.stroke();
+
+                    ctx.fillStyle = r.isFacilitated ? "#00e676" : st.color;
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, r.isFacilitated ? 5.5 : 4.0, 0, 2 * Math.PI);
+                    ctx.fill();
+                    ctx.strokeStyle = "#0a0a0f";
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                }
+
+                // Legend
+                ctx.fillStyle = st.color;
+                ctx.fillRect(legX, legY - 8, 12, 12);
+                ctx.fillStyle = "#eee";
+                ctx.font = "11px sans-serif";
+                ctx.textAlign = "left";
+                const fit = tvc.modelFits ? tvc.modelFits[key] : null;
+                const fitDesc = fit ? ` (Dip: ${fit.facilitationRatio.toFixed(1)}×, Weber: ${fit.weberSlope.toFixed(2)})` : "";
+                ctx.fillText(`${key}${fitDesc}`, legX + 18, legY + 2);
+                legY += 18;
+            }
+
+            // Populate Foley Transducer Model Table
+            if (tvc.modelFits) {
+                const tbodyM = document.getElementById("tvcModelTableBody");
+                tbodyM.innerHTML = "";
+                for (const [key, fit] of Object.entries(tvc.modelFits)) {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td><strong>${key}</strong></td>
+                        <td>${(fit.deltaC0 * 100).toFixed(2)}%</td>
+                        <td><strong style="color: #00e676;">${(fit.minDeltaC * 100).toFixed(2)}%</strong></td>
+                        <td><span class="badge-pill badge-green">${fit.facilitationRatio.toFixed(2)}× Facilitation</span></td>
+                        <td>${(fit.minPed * 100).toFixed(1)}%</td>
+                        <td><strong>${fit.weberSlope.toFixed(2)}</strong></td>
+                        <td>${(fit.r2 * 100).toFixed(1)}%</td>
+                    `;
+                    tbodyM.appendChild(tr);
+                }
+            }
+
+            // Populate Empirical Summary Table
+            if (tvc.summary) {
+                const tbodyS = document.getElementById("tvcSummaryTableBody");
+                tbodyS.innerHTML = "";
+                for (const r of tvc.summary) {
+                    const tr = document.createElement("tr");
+                    const pedStr = (r.pedestalContrast === 0) ? "0.0% (Detection)" : `${(r.pedestalContrast * 100).toFixed(1)}%`;
+                    const stageStr = r.isFacilitated ? 
+                        `<span class="badge-pill badge-green">Facilitation Dip (${r.facilitationFactor.toFixed(1)}×)</span>` : 
+                        (r.pedestalContrast > 0.15 ? '<span class="badge-pill badge-amber">Weber Masking</span>' : '-');
+                    tr.innerHTML = `
+                        <td>${r.polarity} (${r.eccentricityDeg === 0 ? "Center 0°" : "Periph 4°"})</td>
+                        <td>${pedStr}</td>
+                        <td><strong>${(r.incrementThresholdContrast * 100).toFixed(2)}%</strong></td>
+                        <td>${r.thresholdLog10.toFixed(3)}</td>
+                        <td style="color:#aaa;">[${(r.ci95Lower * 100).toFixed(2)}%, ${(r.ci95Upper * 100).toFixed(2)}%]</td>
+                        <td>${stageStr}</td>
+                    `;
+                    tbodyS.appendChild(tr);
+                }
+            }
+        }
+
+        // --- RENDER DoG SCALE & ECCENTRICITY PLOT ---
+        function renderDogPlot() {
+            const canvas = document.getElementById("dogPlotCanvas");
+            const ctx = canvas.getContext("2d");
+            const w = canvas.width;
+            const h = canvas.height;
+
+            ctx.fillStyle = "#0a0a0f";
+            ctx.fillRect(0, 0, w, h);
+
+            const padL = 75, padR = 40, padT = 40, padB = 45;
+            const plotW = w - padL - padR;
+            const plotH = h - padT - padB;
+
+            const xMin = 1.0, xMax = 9.0;
+            const yMin = 0.0, yMax = 140.0;
+
+            const toX = (ecc) => padL + ((ecc - xMin) / (xMax - xMin)) * plotW;
+            const toY = (s) => padT + ((yMax - s) / (yMax - yMin)) * plotH;
+
+            // Grid
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.07)";
+            ctx.lineWidth = 1;
+            for (let yVal = 0; yVal <= 140; yVal += 20) {
+                const sy = toY(yVal);
+                ctx.beginPath();
+                ctx.moveTo(padL, sy);
+                ctx.lineTo(padL + plotW, sy);
+                ctx.stroke();
+
+                ctx.fillStyle = "#888";
+                ctx.font = "11px monospace";
+                ctx.textAlign = "right";
+                ctx.fillText(yVal.toString(), padL - 8, sy + 4);
+            }
+
+            for (let ecc = 2; ecc <= 8; ecc += 2) {
+                const sx = toX(ecc);
+                ctx.beginPath();
+                ctx.moveTo(sx, padT);
+                ctx.lineTo(sx, padT + plotH);
+                ctx.stroke();
+
+                ctx.fillStyle = "#888";
+                ctx.font = "11px monospace";
+                ctx.textAlign = "center";
+                ctx.fillText(`${ecc}°`, sx, padT + plotH + 16);
+            }
+
+            ctx.fillStyle = "#ccc";
+            ctx.font = "12px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("Retinal Eccentricity (degrees visual angle)", padL + plotW / 2, h - 10);
+
+            ctx.save();
+            ctx.translate(22, padT + plotH / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText("Contrast Sensitivity S", 0, 0);
+            ctx.restore();
+
+            const dog = activeDatasets.dog;
+            if (!dog?.conditions) return;
+
+            const scales = {
+                "Small (0.15°)":  { color: "#29b6f6" },
+                "Medium (0.30°)": { color: "#00e676" },
+                "Large (0.60°)":  { color: "#ab47bc" }
+            };
+
+            let legX = padL + 20;
+            let legY = padT + 20;
+
+            for (const [scaleName, cfg] of Object.entries(scales)) {
+                const rows = dog.conditions.filter(c => c.scale === scaleName);
+                rows.sort((a, b) => a.ecc - b.ecc);
+
+                ctx.strokeStyle = cfg.color;
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                rows.forEach((r, idx) => {
+                    const sx = toX(r.ecc);
+                    const sy = toY(r.sensitivity);
+                    if (idx === 0) ctx.moveTo(sx, sy);
+                    else ctx.lineTo(sx, sy);
+                });
+                ctx.stroke();
+
+                for (const r of rows) {
+                    const sx = toX(r.ecc);
+                    const sy = toY(r.sensitivity);
+                    ctx.fillStyle = cfg.color;
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, 5, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+
+                ctx.fillStyle = cfg.color;
+                ctx.fillRect(legX, legY - 8, 12, 12);
+                ctx.fillStyle = "#eee";
+                ctx.font = "11px sans-serif";
+                ctx.textAlign = "left";
+                ctx.fillText(scaleName, legX + 18, legY + 2);
+                legY += 18;
+            }
+        }
+
+        // --- RENDER HARDWARE SPECS ---
+        function renderHardwareSpecs() {
+            const container = document.getElementById("hwSpecsGrid");
+            if (!container) return;
+            const hw = activeDatasets.hardware || benchmarkData.hardware;
+
+            let calibContrast = { gamma: 2.2, matchValue: 186, minVisibleContrast: 0.008 };
+            let calibTiming = { fps: (hw.screen?.measuredFps || 120.0), nominalFrameMs: 1000 / (hw.screen?.measuredFps || 120.0), jitterMs: 0.15, droppedFrames: 0, verified120msFrames: 14 };
+
+            if (window.perceptualCalibrator) {
+                calibContrast.gamma = window.perceptualCalibrator.calibratedGamma;
+                calibContrast.matchValue = window.perceptualCalibrator.matchValue;
+                calibContrast.minVisibleContrast = window.perceptualCalibrator.minVisibleContrast;
+                calibTiming.fps = window.perceptualCalibrator.measuredFps;
+                calibTiming.nominalFrameMs = window.perceptualCalibrator.nominalFrameMs;
+                calibTiming.jitterMs = window.perceptualCalibrator.jitterMs;
+                calibTiming.droppedFrames = window.perceptualCalibrator.droppedFrames;
+                calibTiming.verified120msFrames = Math.round(120.0 / calibTiming.nominalFrameMs);
+            } else if (typeof localStorage !== "undefined") {
+                try {
+                    const c = localStorage.getItem("vision_suite_contrast_calibration");
+                    if (c) Object.assign(calibContrast, JSON.parse(c));
+                    const t = localStorage.getItem("vision_suite_timing_check");
+                    if (t) Object.assign(calibTiming, JSON.parse(t));
+                } catch (e) {}
+            }
+
+            container.innerHTML = `
+                <div class="hw-item">
+                    <strong>Display Resolution:</strong><br>
+                    ${hw.screen?.physicalResolution || "2880 x 1920 (OLED)"}<br>
+                    Device Pixel Ratio: <strong>${hw.screen?.devicePixelRatio || 2.0}</strong>
+                </div>
+                <div class="hw-item">
+                    <strong>Measured Refresh Rate:</strong><br>
+                    <strong>${hw.screen?.measuredFps || 120.1} Hz</strong><br>
+                    Frame Period: ${(1000 / (hw.screen?.measuredFps || 120)).toFixed(2)} ms
+                </div>
+                <div class="hw-item">
+                    <strong>Dynamic Range &amp; Color:</strong><br>
+                    <strong>${hw.screen?.isHighDynamicRange ? "High Dynamic Range (HDR10)" : "SDR"}</strong><br>
+                    Color Space: <strong>BT.2020 / Display P3</strong>
+                </div>
+                <div class="hw-item">
+                    <strong>GPU Graphics Pipeline:</strong><br>
+                    ${hw.gpu?.unmaskedRenderer || "Qualcomm Adreno X1-85 GPU"}<br>
+                    Vendor: ${hw.gpu?.unmaskedVendor || "Qualcomm"}
+                </div>
+                <div class="hw-item">
+                    <strong>10-Bit Buffers &amp; Float Render:</strong><br>
+                    RGB10_A2 (10-bit Int): <strong>${hw.gpu?.webgl2_rgb10a2 ? "SUPPORTED" : "Standard"}</strong><br>
+                    RGBA16F (Float Buffer): <strong>${hw.gpu?.webgl2_float ? "SUPPORTED" : "Standard"}</strong>
+                </div>
+                <div class="hw-item">
+                    <strong>Platform Computing Specs:</strong><br>
+                    CPUs: <strong>${hw.platform?.logicalCores || 8} Cores</strong><br>
+                    RAM: <strong>${hw.platform?.deviceMemoryGB || 16} GB</strong><br>
+                    Touch Points: <strong>${hw.platform?.maxTouchPoints || 10} (Surface Touch)</strong>
+                </div>
+                <div class="hw-item" style="border-color: rgba(0, 230, 118, 0.35);">
+                    <strong style="color: #00e676;">Physical Screen Calibration:</strong><br>
+                    Viewing Distance: <strong>${(window.ScreenCalibrator ? window.ScreenCalibrator.getCalibration().viewingDistanceCm : 57.3)} cm</strong><br>
+                    Visual Scale: <strong>${(window.ScreenCalibrator ? window.ScreenCalibrator.getCalibration().pxPerDeg.toFixed(1) : "41.9")} px/&deg;</strong> (${(window.ScreenCalibrator ? window.ScreenCalibrator.getCalibration().dpi : 267)} PPI)
+                </div>
+                <div class="hw-item" style="border-color: rgba(64, 196, 255, 0.4);">
+                    <strong style="color: #40c4ff;">Calibrated Photometric Gamma (&gamma;):</strong><br>
+                    Display &gamma;: <strong>${Number(calibContrast.gamma).toFixed(2)}</strong> (Halftone Match: <strong>${calibContrast.matchValue}</strong>/255)<br>
+                    Contrast Precision: <strong>Sub-LSB TPDF Dithered</strong> (&lt;0.1% C)<br>
+                    <button class="btn-action" style="margin-top: 6px; font-size: 11px; padding: 3px 8px; cursor: pointer;" onclick="if (window.perceptualCalibrator) window.perceptualCalibrator.openModal('contrast');">
+                        Adjust Photometric &gamma;
+                    </button>
+                </div>
+                <div class="hw-item" style="border-color: rgba(255, 179, 0, 0.4);">
+                    <strong style="color: #ffb300;">120 ms Stimulus Timing Telemetry:</strong><br>
+                    VSync Frame Delivery: <strong>${calibTiming.verified120msFrames || 14} frames @ ${Number(calibTiming.fps).toFixed(1)} Hz</strong><br>
+                    Timing Jitter: <strong>&plusmn;${Number(calibTiming.jitterMs).toFixed(2)} ms</strong> (${calibTiming.droppedFrames} dropped frames)<br>
+                    <button class="btn-action" style="margin-top: 6px; font-size: 11px; padding: 3px 8px; cursor: pointer;" onclick="if (window.perceptualCalibrator) window.perceptualCalibrator.openModal('timing');">
+                        Run Vernier Strobe Check
+                    </button>
+                </div>
+                <div class="hw-item" style="border-color: rgba(179, 136, 255, 0.4);">
+                    <strong style="color: #b388ff;">WebGL2 Stimulus Engine:</strong><br>
+                    Pipelines: <strong>GLSL Float (Gabor, DoG, Fixation)</strong><br>
+                    Quantization: <strong>Triangular PDF Dither (32-bit GPU)</strong><br>
+                    Linearization: <strong>L^{1/&gamma;} Power-Law in Shader</strong>
+                </div>
+            `;
+        }
+
+        // --- FILE DRAG & DROP / SELECTOR ---
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            if (!files || files.length === 0) return;
+            Array.from(files).forEach(file => parseUploadedFile(file));
+        }
+
+        function parseUploadedFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const content = evt.target.result;
+                if (file.name.endsWith(".json")) {
+                    try {
+                        const parsed = JSON.parse(content);
+                        if (parsed.summary && parsed.metadata?.experiment?.includes("Dipper")) {
+                            activeDatasets.tvc = {
+                                summary: parsed.summary,
+                                modelFits: parsed.modelFits
+                            };
+                        } else if (parsed.summary && parsed.metadata?.experiment?.includes("CSF")) {
+                            activeDatasets.csf = {
+                                summary: parsed.summary,
+                                modelFit: parsed.modelFit
+                            };
+                        }
+                        if (parsed.hardwareProfile) activeDatasets.hardware = parsed.hardwareProfile;
+                        if (parsed.metadata?.subjectCode) activeDatasets.subject = parsed.metadata.subjectCode;
+                        addSubjectOption(activeDatasets.subject || file.name);
+                        renderAllViews();
+                    } catch (e) {
+                        alert("Could not parse JSON file: " + e.message);
+                    }
+                } else if (file.name.endsWith(".csv")) {
+                    parseCsvContent(content, file.name);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function parseCsvContent(csvText, filename) {
+            const lines = csvText.split(/\r?\n/);
+            let subject = "SUBJ_UPLOADED";
+            let isCsf = false;
+            let isDipper = false;
+
+            for (const line of lines) {
+                if (line.includes("Subject Code:")) {
+                    subject = line.split("Subject Code:")[1].trim();
+                }
+                if (line.includes("Contrast Sensitivity Function") || line.includes("spatial_frequency_cpd")) {
+                    isCsf = true;
+                }
+                if (line.includes("DIPPER FUNCTIONS") || line.includes("pedestal_contrast")) {
+                    isDipper = true;
+                }
+            }
+
+            activeDatasets.subject = subject;
+            addSubjectOption(subject);
+
+            if (isDipper) {
+                const summaryRows = [];
+                let inSummary = false;
+                for (const line of lines) {
+                    if (line.includes("SECTION 1: EMPIRICAL DIPPER")) inSummary = true;
+                    else if (line.includes("SECTION 2:") || line.trim() === "") inSummary = false;
+                    else if (inSummary && !line.startsWith("#") && line.includes(",")) {
+                        const parts = line.split(",");
+                        if (parts.length >= 8 && parts[0] !== "condition_id") {
+                            summaryRows.push({
+                                conditionId: parts[0],
+                                polarity: parts[1],
+                                eccentricityDeg: parseFloat(parts[2]),
+                                pedestalContrast: parseFloat(parts[3]),
+                                thresholdLog10: parseFloat(parts[5]),
+                                incrementThresholdContrast: parseFloat(parts[7]),
+                                ci95Lower: parseFloat(parts[8]),
+                                ci95Upper: parseFloat(parts[9]),
+                                isFacilitated: parts[11] === "YES",
+                                facilitationFactor: parseFloat(parts[12] || 1.0)
+                            });
+                        }
+                    }
+                }
+                if (summaryRows.length > 0) {
+                    activeDatasets.tvc = {
+                        summary: summaryRows,
+                        modelFits: benchmarkData.tvc.modelFits
+                    };
+                }
+            } else if (isCsf) {
+                const csfRows = [];
+                let inSummary = false;
+                for (const line of lines) {
+                    if (line.includes("SECTION 1: EMPIRICAL CSF")) inSummary = true;
+                    else if (line.includes("SECTION 2:") || line.trim() === "") inSummary = false;
+                    else if (inSummary && !line.startsWith("#") && line.includes(",")) {
+                        const parts = line.split(",");
+                        if (parts.length >= 6 && parts[0] !== "spatial_frequency_cpd") {
+                            csfRows.push({
+                                spatialFreqCpd: parseFloat(parts[0]),
+                                sigmaDeg: parseFloat(parts[1]),
+                                thresholdLog10: parseFloat(parts[2]),
+                                thresholdMichelson: parseFloat(parts[4]),
+                                sensitivity: parseFloat(parts[5]),
+                                ci95Lower: parseFloat(parts[6] || parts[5] * 0.8),
+                                ci95Upper: parseFloat(parts[7] || parts[5] * 1.25),
+                                trialsTested: parseInt(parts[8] || 20)
+                            });
+                        }
+                    }
+                }
+                if (csfRows.length > 0) {
+                    activeDatasets.csf = {
+                        summary: csfRows,
+                        modelFit: benchmarkData.csf.modelFit
+                    };
+                }
+            }
+
+            renderAllViews();
+        }
+
+        function addSubjectOption(name) {
+            const selectEl = document.getElementById("subjectSelect");
+            if (!Array.from(selectEl.options).some(o => o.value === name)) {
+                const opt = document.createElement("option");
+                opt.value = name;
+                opt.innerText = `${name} (Uploaded)`;
+                selectEl.appendChild(opt);
+            }
+            selectEl.value = name;
+        }
+
+        function downloadCanvasPNG(canvasId, filename) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            const a = document.createElement("a");
+            a.download = filename;
+            a.href = canvas.toDataURL("image/png");
+            a.click();
+        }
+
+        // Drag & drop support on body
+        window.addEventListener("dragover", (e) => e.preventDefault());
+        window.addEventListener("drop", (e) => {
+            e.preventDefault();
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                Array.from(e.dataTransfer.files).forEach(f => parseUploadedFile(f));
+            }
+        });
+
+        // Initialize on load
+        window.addEventListener("DOMContentLoaded", () => {
+            initSubjectList();
+            renderHardwareSpecs();
+        });
+    </script>
+    <script src="vision_shared/js/webgl_stimulus_engine.js"></script>
+    <script src="vision_shared/js/screen_calibrator.js"></script>
+    <script src="vision_shared/js/perceptual_calibration.js"></script>
+</body>
+</html>

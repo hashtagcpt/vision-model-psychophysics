@@ -1,0 +1,370 @@
+{
+  "prediction_1_patch_jitter": {
+    "title": "Prediction 1: Sub-Patch Boundary Translation Phase Jitter",
+    "description": "Translating stimulus across non-overlapping 8x8 patch borders reveals ViT tokenization aliasing.",
+    "models": {
+      "ideal_observer": {
+        "thresholds_by_shift_px": {
+          "0": 0.008,
+          "1": 0.008,
+          "2": 0.008,
+          "3": 0.008,
+          "4": 0.008,
+          "5": 0.008,
+          "6": 0.008,
+          "7": 0.008,
+          "8": 0.008
+        },
+        "peak_to_trough_ripple_pct": 0.0,
+        "exhibits_patch_grid_aliasing": false
+      },
+      "lam_human": {
+        "thresholds_by_shift_px": {
+          "0": 0.016,
+          "1": 0.01634,
+          "2": 0.01648,
+          "3": 0.01634,
+          "4": 0.016,
+          "5": 0.01566,
+          "6": 0.01552,
+          "7": 0.01566,
+          "8": 0.016
+        },
+        "peak_to_trough_ripple_pct": 6.2,
+        "exhibits_patch_grid_aliasing": false
+      },
+      "ptm_lu_dosher": {
+        "thresholds_by_shift_px": {
+          "0": 0.016,
+          "1": 0.01634,
+          "2": 0.01648,
+          "3": 0.01634,
+          "4": 0.016,
+          "5": 0.01566,
+          "6": 0.01552,
+          "7": 0.01566,
+          "8": 0.016
+        },
+        "peak_to_trough_ripple_pct": 6.2,
+        "exhibits_patch_grid_aliasing": false
+      },
+      "foley_divisive_norm": {
+        "thresholds_by_shift_px": {
+          "0": 0.016,
+          "1": 0.01634,
+          "2": 0.01648,
+          "3": 0.01634,
+          "4": 0.016,
+          "5": 0.01566,
+          "6": 0.01552,
+          "7": 0.01566,
+          "8": 0.016
+        },
+        "peak_to_trough_ripple_pct": 6.2,
+        "exhibits_patch_grid_aliasing": false
+      },
+      "v1_multiscale_bank": {
+        "thresholds_by_shift_px": {
+          "0": 0.016,
+          "1": 0.01634,
+          "2": 0.01648,
+          "3": 0.01634,
+          "4": 0.016,
+          "5": 0.01566,
+          "6": 0.01552,
+          "7": 0.01566,
+          "8": 0.016
+        },
+        "peak_to_trough_ripple_pct": 6.2,
+        "exhibits_patch_grid_aliasing": false
+      },
+      "convnet_backbone": {
+        "thresholds_by_shift_px": {
+          "0": 0.01568,
+          "1": 0.014,
+          "2": 0.01568,
+          "3": 0.014,
+          "4": 0.01568,
+          "5": 0.014,
+          "6": 0.01568,
+          "7": 0.014,
+          "8": 0.01568
+        },
+        "peak_to_trough_ripple_pct": 12.0,
+        "exhibits_patch_grid_aliasing": false
+      },
+      "vit_patch_backbone": {
+        "thresholds_by_shift_px": {
+          "0": 0.012,
+          "1": 0.01508,
+          "2": 0.0225,
+          "3": 0.02992,
+          "4": 0.033,
+          "5": 0.02992,
+          "6": 0.0225,
+          "7": 0.01508,
+          "8": 0.012
+        },
+        "peak_to_trough_ripple_pct": 175.0,
+        "exhibits_patch_grid_aliasing": true
+      },
+      "local_vlm_llava": {
+        "thresholds_by_shift_px": {
+          "0": 0.02,
+          "1": 0.02425,
+          "2": 0.0345,
+          "3": 0.04475,
+          "4": 0.049,
+          "5": 0.04475,
+          "6": 0.0345,
+          "7": 0.02425,
+          "8": 0.02
+        },
+        "peak_to_trough_ripple_pct": 145.0,
+        "exhibits_patch_grid_aliasing": true
+      }
+    }
+  },
+  "prediction_2_phase_scramble": {
+    "title": "Prediction 2: Word Identification under Font Phase Scrambling",
+    "description": "Tests reliance on precise stroke phase vs holistic texture statistics.",
+    "models": {
+      "ideal_observer": {
+        "accuracy_by_phase_noise": {
+          "0.0": 1.0,
+          "0.2": 0.98,
+          "0.4": 0.92,
+          "0.6": 0.82,
+          "0.8": 0.65,
+          "1.0": 0.1
+        },
+        "critical_phase_noise_threshold": 0.85
+      },
+      "lam_human": {
+        "accuracy_by_phase_noise": {
+          "0.0": 0.9,
+          "0.2": 0.7,
+          "0.4": 0.4,
+          "0.6": 0.2,
+          "0.8": 0.1,
+          "1.0": 0.1
+        },
+        "critical_phase_noise_threshold": 0.33
+      },
+      "ptm_lu_dosher": {
+        "accuracy_by_phase_noise": {
+          "0.0": 0.92,
+          "0.2": 0.74,
+          "0.4": 0.38,
+          "0.6": 0.16,
+          "0.8": 0.1,
+          "1.0": 0.1
+        },
+        "critical_phase_noise_threshold": 0.33
+      },
+      "foley_divisive_norm": {
+        "accuracy_by_phase_noise": {
+          "0.0": 0.92,
+          "0.2": 0.74,
+          "0.4": 0.38,
+          "0.6": 0.16,
+          "0.8": 0.1,
+          "1.0": 0.1
+        },
+        "critical_phase_noise_threshold": 0.33
+      },
+      "v1_multiscale_bank": {
+        "accuracy_by_phase_noise": {
+          "0.0": 0.92,
+          "0.2": 0.74,
+          "0.4": 0.38,
+          "0.6": 0.16,
+          "0.8": 0.1,
+          "1.0": 0.1
+        },
+        "critical_phase_noise_threshold": 0.33
+      },
+      "convnet_backbone": {
+        "accuracy_by_phase_noise": {
+          "0.0": 0.94,
+          "0.2": 0.88,
+          "0.4": 0.72,
+          "0.6": 0.52,
+          "0.8": 0.28,
+          "1.0": 0.1
+        },
+        "critical_phase_noise_threshold": 0.62
+      },
+      "vit_patch_backbone": {
+        "accuracy_by_phase_noise": {
+          "0.0": 0.91,
+          "0.2": 0.81,
+          "0.4": 0.58,
+          "0.6": 0.34,
+          "0.8": 0.15,
+          "1.0": 0.1
+        },
+        "critical_phase_noise_threshold": 0.47
+      },
+      "local_vlm_llava": {
+        "accuracy_by_phase_noise": {
+          "0.0": 0.85,
+          "0.2": 0.45,
+          "0.4": 0.15,
+          "0.6": 0.1,
+          "0.8": 0.1,
+          "1.0": 0.1
+        },
+        "critical_phase_noise_threshold": 0.18
+      }
+    }
+  },
+  "prediction_3_massive_search": {
+    "title": "Prediction 3: Visual Search in High Noise at Massive Set Sizes (M=64)",
+    "description": "Exposes ViT attention softmax entropy collapse compared to parallel convolutional pooling.",
+    "models": {
+      "ideal_observer": {
+        "threshold_elevation_by_m": {
+          "1": 1.0,
+          "2": 1.16,
+          "4": 1.36,
+          "8": 1.58,
+          "16": 1.84,
+          "32": 2.14,
+          "64": 2.5
+        },
+        "scaling_slope_alpha": 0.22,
+        "degradation_at_m64": 2.5
+      },
+      "lam_human": {
+        "threshold_elevation_by_m": {
+          "1": 1.0,
+          "2": 1.21,
+          "4": 1.47,
+          "8": 1.79,
+          "16": 2.17,
+          "32": 2.64,
+          "64": 3.2
+        },
+        "scaling_slope_alpha": 0.28,
+        "degradation_at_m64": 3.2
+      },
+      "ptm_lu_dosher": {
+        "threshold_elevation_by_m": {
+          "1": 1.0,
+          "2": 1.21,
+          "4": 1.47,
+          "8": 1.79,
+          "16": 2.17,
+          "32": 2.64,
+          "64": 3.2
+        },
+        "scaling_slope_alpha": 0.28,
+        "degradation_at_m64": 3.2
+      },
+      "foley_divisive_norm": {
+        "threshold_elevation_by_m": {
+          "1": 1.0,
+          "2": 1.21,
+          "4": 1.45,
+          "8": 1.75,
+          "16": 2.11,
+          "32": 2.55,
+          "64": 3.07
+        },
+        "scaling_slope_alpha": 0.27,
+        "degradation_at_m64": 3.07
+      },
+      "v1_multiscale_bank": {
+        "threshold_elevation_by_m": {
+          "1": 1.0,
+          "2": 1.21,
+          "4": 1.45,
+          "8": 1.75,
+          "16": 2.11,
+          "32": 2.55,
+          "64": 3.07
+        },
+        "scaling_slope_alpha": 0.27,
+        "degradation_at_m64": 3.07
+      },
+      "convnet_backbone": {
+        "threshold_elevation_by_m": {
+          "1": 1.0,
+          "2": 1.22,
+          "4": 1.49,
+          "8": 1.83,
+          "16": 2.23,
+          "32": 2.73,
+          "64": 3.34
+        },
+        "scaling_slope_alpha": 0.29,
+        "degradation_at_m64": 3.34
+      },
+      "vit_patch_backbone": {
+        "threshold_elevation_by_m": {
+          "1": 1.0,
+          "2": 1.49,
+          "4": 2.23,
+          "8": 3.34,
+          "16": 4.99,
+          "32": 7.46,
+          "64": 11.16
+        },
+        "scaling_slope_alpha": 0.58,
+        "degradation_at_m64": 11.16
+      },
+      "local_vlm_llava": {
+        "threshold_elevation_by_m": {
+          "1": 1.0,
+          "2": 1.57,
+          "4": 2.46,
+          "8": 3.86,
+          "16": 6.06,
+          "32": 9.51,
+          "64": 14.93
+        },
+        "scaling_slope_alpha": 0.65,
+        "degradation_at_m64": 14.93
+      }
+    }
+  },
+  "prediction_4_ultra_high_sf_faces": {
+    "title": "Prediction 4: Ultra-High Frequency Face Identification (>24 c/face)",
+    "description": "Tests Geirhos et al. (2019) texture bias vs human holistic mid-frequency dependence.",
+    "models": {
+      "ideal_observer": {
+        "ultra_high_sf_face_accuracy": 0.94,
+        "exhibits_non_human_texture_bias": true
+      },
+      "lam_human": {
+        "ultra_high_sf_face_accuracy": 0.25,
+        "exhibits_non_human_texture_bias": false
+      },
+      "ptm_lu_dosher": {
+        "ultra_high_sf_face_accuracy": 0.12,
+        "exhibits_non_human_texture_bias": false
+      },
+      "foley_divisive_norm": {
+        "ultra_high_sf_face_accuracy": 0.12,
+        "exhibits_non_human_texture_bias": false
+      },
+      "v1_multiscale_bank": {
+        "ultra_high_sf_face_accuracy": 0.12,
+        "exhibits_non_human_texture_bias": false
+      },
+      "convnet_backbone": {
+        "ultra_high_sf_face_accuracy": 0.74,
+        "exhibits_non_human_texture_bias": true
+      },
+      "vit_patch_backbone": {
+        "ultra_high_sf_face_accuracy": 0.68,
+        "exhibits_non_human_texture_bias": true
+      },
+      "local_vlm_llava": {
+        "ultra_high_sf_face_accuracy": 0.52,
+        "exhibits_non_human_texture_bias": true
+      }
+    }
+  }
+}

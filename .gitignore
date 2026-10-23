@@ -1,0 +1,21 @@
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.log
+
+# Environments
+.venv/
+env/
+venv/
+ENV/
+
+# Build artifacts & executables
+build/
+dist/
+*.spec
+*.exe
+
+# Large model weights cache
+models_cache/
+*.gguf

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>PsychoJS Vision Science: ON vs. OFF Difference of Gaussians (DoG) with QUEST+</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- Top Bar with Progress -->
+    <div id="topBar">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <a href="../index.html" style="color: #00bcd4; text-decoration: none; font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 4px; background: rgba(0, 188, 212, 0.15); border: 1px solid rgba(0, 188, 212, 0.3);">← Suite Hub</a>
+            <span style="font-weight: 600; font-size: 15px; color: #00bcd4;">Difference of Gaussians (DoG) Psychophysics</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <div id="progressContainer">
+                <div id="progressBar"></div>
+            </div>
+            <span id="progressText">Initializing...</span>
+        </div>
+    </div>
+
+    <!-- Main Experiment Canvas -->
+    <canvas id="experimentCanvas"></canvas>
+
+    <!-- Instructions Modal -->
+    <div id="instructionsModal" class="modal">
+        <h2>Vision Science: ON vs. OFF Difference of Gaussians (DoG)</h2>
+        <p>
+            Welcome to this psychophysics experiment. In this task, you will discriminate between 
+            <strong>ON-center</strong> and <strong>OFF-center Difference of Gaussians (DoG)</strong> stimuli across retinal eccentricities.
+        </p>
+        <p><strong>Instructions:</strong></p>
+        <ul style="line-height: 1.7;">
+            <li>Keep your eyes focused on the <strong>single stationary central fixation cross</strong> throughout each trial.</li>
+            <li>A target will briefly flash for <strong>120 milliseconds</strong> in your peripheral vision (at 2&deg;, 4&deg;, 6&deg;, or 8&deg; eccentricity to the left or right of fixation).</li>
+            <li>Identify the polarity of the stimulus:
+                <ul style="margin-top: 4px;">
+                    <li><strong>ON-center:</strong> Bright center with dark surround.</li>
+                    <li><strong>OFF-center:</strong> Dark center with bright surround.</li>
+                </ul>
+            </li>
+            <li>Respond using your keyboard:
+                <ul style="margin-top: 4px;">
+                    <li><strong>ON-center (Bright center):</strong> Press <kbd>F</kbd> or <kbd>&uarr;</kbd> (Up Arrow)</li>
+                    <li><strong>OFF-center (Dark center):</strong> Press <kbd>J</kbd> or <kbd>&darr;</kbd> (Down Arrow)</li>
+                </ul>
+            </li>
+            <li><strong>Trial Feedback:</strong> The central fixation cross will briefly turn <span style="color:#00e676; font-weight:600;">green</span> (pleasant chime) for correct responses, or <span style="color:#ff5252; font-weight:600;">red</span> (buzz) for incorrect responses.</li>
+            <li>Stimulus contrast is adaptively adjusted across 12 interleaved conditions using the Bayesian <strong>QUEST+ algorithm</strong> (Watson, 2017) to find your contrast threshold.</li>
+        </ul>
+        <!-- Subject Code Section -->
+        <div style="background: rgba(255,255,255,0.03); padding: 12px 14px; border-radius: 8px; border: 1px solid #333344; margin: 12px 0;">
+            <label for="participantId" style="color: #00bcd4; font-size: 13px; font-weight: 600;">Observer / Subject Code:</label>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; align-items: center;">
+                <input type="text" id="participantId" placeholder="e.g. OBS_01" style="background: #2a2a2a; color: #fff; border: 1px solid #555; padding: 6px 12px; border-radius: 4px; font-family: monospace; font-size: 14px; font-weight: bold; flex: 1; min-width: 160px;">
+                <button type="button" id="btnGenSubjectCode" class="secondary-btn" style="margin: 0; padding: 6px 12px; font-size: 13px;" title="Auto-generate next sequential observer code">⚙ Auto-Generate</button>
+                <select id="selectExistingSubject" style="background: #2a2a2a; color: #00bcd4; border: 1px solid #555; padding: 6px 10px; border-radius: 4px; font-size: 13px; font-weight: 600; cursor: pointer; max-width: 220px;" title="Select an existing observer from previous sessions">
+                    <option value="" disabled selected>👤 Select Existing User</option>
+                </select>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: 8px; border: 1px solid #333344; margin: 12px 0; flex-wrap: wrap; gap: 8px;">
+            <span style="font-size: 13px; color: #ccc;">Screen &amp; Viewing Distance: <strong id="dogCalibText" style="color: #00e676;">57.3 cm (41.9 px/&deg;)</strong></span>
+            <div style="display: flex; gap: 6px;">
+                <button type="button" class="secondary-btn" onclick="window.screenCalibrator && window.screenCalibrator.openCalibrationModal()" style="font-size: 11px; padding: 4px 10px; margin: 0; color: #ffb300; border-color: rgba(255, 179, 0, 0.4);">💳 Size</button>
+                <button type="button" class="secondary-btn" onclick="window.perceptualCalibrator && window.perceptualCalibrator.openModal('timing')" style="font-size: 11px; padding: 4px 10px; margin: 0; color: #00bcd4; border-color: rgba(0, 188, 212, 0.4);">⏱ Timing</button>
+                <button type="button" class="secondary-btn" onclick="window.perceptualCalibrator && window.perceptualCalibrator.openModal('contrast')" style="font-size: 11px; padding: 4px 10px; margin: 0; color: #00e676; border-color: rgba(0, 230, 118, 0.4);">🌓 Contrast</button>
+            </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <a href="../index.html" class="secondary-btn" style="text-decoration: none; padding: 8px 14px; font-size: 13px;">← Suite Hub</a>
+                <label style="font-size: 13px; color: #aaa;">
+                    Trials per condition: 
+                    <select id="selectTrials" style="background: #2a2a2a; color: #fff; border: 1px solid #555; padding: 4px 8px; border-radius: 4px;" onchange="window.experiment.setTrialsPerCondition(parseInt(this.value))">
+                        <option value="5">5 trials (Fast Demo / 60 trials total)</option>
+                        <option value="15">15 trials (Standard / 180 trials total)</option>
+                        <option value="20" selected>20 trials (Rigorous / 240 trials total)</option>
+                        <option value="30">30 trials (High Precision / 360 trials total)</option>
+                    </select>
+                </label>
+            </div>
+            <button id="btnStart" class="primary-btn">Start Experiment [Space / Enter]</button>
+        </div>
+    </div>
+
+    <!-- Results Modal -->
+    <div id="resultsModal" class="modal" style="display: none; max-width: 850px;">
+        <h2>Experiment Complete: QUEST+ Threshold Estimates</h2>
+        <p>
+            Below are your estimated contrast detection/discrimination thresholds across the 
+            <strong>12 conditions (3 spatial scales &times; 4 retinal eccentricities)</strong>.
+        </p>
+
+        <!-- Live Psychometric Plot Canvas -->
+        <canvas id="plotCanvas" width="780" height="280"></canvas>
+
+        <!-- Summary Table -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Condition ID</th>
+                        <th>DoG Size (σ)</th>
+                        <th>Eccentricity</th>
+                        <th>Trials</th>
+                        <th>Contrast Threshold</th>
+                        <th>Sensitivity (1/C)</th>
+                        <th>Credible Interval</th>
+                    </tr>
+                </thead>
+                <tbody id="summaryTableBody">
+                    <!-- Populated dynamically -->
+                </tbody>
+            </table>
+        </div>
+
+        <div style="margin-top: 24px; border-top: 1px solid #333; padding-top: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button id="btnDownloadSummary" class="secondary-btn">📊 Thresholds (CSV)</button>
+                <button id="btnDownloadTrials" class="secondary-btn">📝 Trials (CSV)</button>
+                <button id="btnDownloadJson" class="secondary-btn">💾 Session (JSON)</button>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button class="secondary-btn" onclick="location.reload()">Restart</button>
+                <a href="../index.html" class="primary-btn" style="text-decoration: none; padding: 10px 18px;">← Return to Suite Hub</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../vision_shared/js/subject_manager.js"></script>
+    <script src="../vision_shared/js/screen_calibrator.js"></script>
+    <script src="../vision_shared/js/webgl_stimulus_engine.js"></script>
+    <script src="../vision_shared/js/perceptual_calibration.js"></script>
+    <script src="js/questplus.js"></script>
+    <script src="js/dog_renderer.js"></script>
+    <script src="js/data_exporter.js"></script>
+    <script src="js/experiment.js"></script>
+</body>
+</html>

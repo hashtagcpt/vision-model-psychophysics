@@ -1,0 +1,673 @@
+/* Vision Science CSF Experiment - Stylesheet (Two-Interval Forced Choice 2IFC 2AFC) */
+
+:root {
+    --bg-primary: #121217;
+    --bg-card: #1c1c24;
+    --bg-card-border: #2e2e3e;
+    --accent: #40c4ff;
+    --accent-hover: #00b0ff;
+    --text-primary: #f0f0f5;
+    --text-secondary: #9e9ea8;
+    --success: #00e676;
+    --warning: #ffb300;
+    --danger: #ff5252;
+    --gray-bg: rgb(128, 128, 128); /* 8-bit neutral mid-gray */
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+}
+
+body.experiment-active {
+    background-color: var(--gray-bg);
+    overflow: hidden;
+    padding: 0;
+}
+
+.app-container {
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 16px;
+}
+
+body.experiment-active .app-container {
+    max-width: 100vw;
+    padding: 0;
+    margin: 0;
+    width: 100vw;
+    height: 100vh;
+}
+
+/* Card Container */
+.card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--bg-card-border);
+    border-radius: 12px;
+    padding: 24px 32px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    margin-bottom: 20px;
+}
+
+.title-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.title-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.title-header p {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.badge-row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.badge {
+    background: rgba(64, 196, 255, 0.12);
+    color: var(--accent);
+    border: 1px solid rgba(64, 196, 255, 0.3);
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* ============================================================ */
+/* HARDWARE DIAGNOSTIC SUITE CARD                               */
+/* ============================================================ */
+.diag-card {
+    background: #15151e;
+    border: 1px solid #313145;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+}
+
+.diag-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.diag-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #e2e8f0;
+}
+
+.diag-badge {
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+.diag-badge-hdr {
+    background: rgba(0, 230, 118, 0.15);
+    color: #00e676;
+    border: 1px solid rgba(0, 230, 118, 0.4);
+}
+
+.diag-badge-capable {
+    background: rgba(64, 196, 255, 0.15);
+    color: #40c4ff;
+    border: 1px solid rgba(64, 196, 255, 0.4);
+}
+
+.diag-badge-sdr {
+    background: rgba(255, 179, 0, 0.15);
+    color: #ffb300;
+    border: 1px solid rgba(255, 179, 0, 0.4);
+}
+
+.diag-subsystems {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.diag-section {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    padding: 10px 14px;
+}
+
+.diag-section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.diag-section-icon {
+    font-size: 14px;
+}
+
+.diag-section-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #cbd5e1;
+}
+
+.diag-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 4px;
+}
+
+.diag-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.diag-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.diag-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #f1f5f9;
+}
+
+.diag-note {
+    font-size: 12px;
+    line-height: 1.5;
+    color: #94a3b8;
+    background: rgba(0, 0, 0, 0.25);
+    padding: 8px 12px;
+    border-radius: 6px;
+    border-left: 3px solid #38bdf8;
+    margin-top: 8px;
+}
+
+.text-success { color: #00e676 !important; }
+.text-accent { color: #38bdf8 !important; }
+.text-muted { color: #94a3b8 !important; }
+
+/* Form Controls */
+.input-with-button {
+    display: flex;
+    gap: 8px;
+}
+
+.input-with-button input {
+    flex: 1;
+}
+
+.btn-sm-action {
+    background-color: #242436;
+    color: var(--accent);
+    border: 1px solid #3d4157;
+    border-radius: 6px;
+    padding: 9px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+
+.btn-sm-action:hover {
+    background-color: #35394d;
+    border-color: var(--accent);
+    color: #fff;
+}
+
+.btn-sm-action:active {
+    transform: scale(0.97);
+}
+
+.required-star {
+    color: var(--danger);
+    font-weight: bold;
+}
+
+.input-error-msg {
+    color: var(--danger);
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+.input-error {
+    border-color: var(--danger) !important;
+    box-shadow: 0 0 0 2px rgba(255, 82, 82, 0.3) !important;
+}
+
+.download-banner {
+    width: 100%;
+    background: rgba(0, 230, 118, 0.12);
+    border: 1px solid rgba(0, 230, 118, 0.35);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #00e676;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.banner-icon {
+    font-size: 16px;
+}
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 18px;
+    margin-bottom: 24px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.form-group input,
+.form-group select {
+    background-color: #121217;
+    border: 1px solid var(--bg-card-border);
+    color: var(--text-primary);
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: var(--accent);
+}
+
+.form-note {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+
+.info-box {
+    background-color: rgba(64, 196, 255, 0.05);
+    border-left: 3px solid var(--accent);
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    margin-bottom: 20px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #cfd8dc;
+}
+
+.btn-primary {
+    background-color: var(--accent);
+    color: #0b0f14;
+    border: none;
+    border-radius: 8px;
+    padding: 14px 28px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.2s, transform 0.1s;
+}
+
+.btn-primary:hover {
+    background-color: var(--accent-hover);
+}
+
+.btn-primary:active {
+    transform: scale(0.98);
+}
+
+/* ============================================================ */
+/* FULLSCREEN 2IFC EXPERIMENT SCREEN                            */
+/* ============================================================ */
+#screenExperiment {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: var(--gray-bg);
+    z-index: 999;
+}
+
+#screenExperiment.active {
+    display: block;
+}
+
+#experimentCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: block;
+    cursor: none;
+}
+
+/* Minimalist Non-Intrusive HUD */
+.experiment-hud {
+    position: absolute;
+    top: 14px;
+    left: 20px;
+    right: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.hud-pill {
+    background: rgba(0, 0, 0, 0.45);
+    color: #f0f0f0;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    backdrop-filter: blur(4px);
+}
+
+.hud-progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.hud-bar-container {
+    width: 120px;
+    height: 6px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.hud-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--accent);
+    transition: width 0.2s ease;
+}
+
+.btn-exit-fullscreen {
+    pointer-events: auto;
+    background: rgba(0, 0, 0, 0.4);
+    color: #f0f0f0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-exit-fullscreen:hover {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+/* Visual Interval Cue above fixation - disabled to eliminate visual distractor */
+.interval-visual-cue {
+    display: none !important;
+}
+
+/* 2IFC Response Buttons (Interval 1 vs Interval 2) - low profile & greyscale */
+.response-controls-2ifc {
+    position: absolute;
+    bottom: 14px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    z-index: 10;
+    pointer-events: auto;
+}
+
+.btn-2ifc {
+    border-radius: 6px;
+    padding: 7px 18px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-width: 120px;
+    background: rgba(35, 35, 35, 0.65);
+    color: #b5b5b5;
+    border: 1px solid rgba(130, 130, 130, 0.35);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(4px);
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.btn-2ifc span.subtext {
+    font-size: 10px;
+    font-weight: normal;
+    color: #888888;
+    opacity: 0.8;
+}
+
+/* Greyscale styling for both interval buttons */
+.btn-interval-1, .btn-interval-2 {
+    background: rgba(35, 35, 35, 0.65);
+    color: #b5b5b5;
+    border: 1px solid rgba(130, 130, 130, 0.35);
+}
+
+.btn-interval-1:hover:not(:disabled), .btn-interval-2:hover:not(:disabled) {
+    background: rgba(70, 70, 70, 0.85);
+    border-color: rgba(180, 180, 180, 0.6);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    transform: none;
+}
+
+.btn-interval-1:hover:not(:disabled) span.subtext, .btn-interval-2:hover:not(:disabled) span.subtext {
+    color: #cccccc;
+}
+
+.btn-2ifc:active:not(:disabled) {
+    background: rgba(90, 90, 90, 0.95);
+    transform: none;
+}
+
+.btn-2ifc:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.keyboard-hint-overlay {
+    position: absolute;
+    bottom: 6px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 11px;
+    color: rgba(0, 0, 0, 0.7);
+    font-weight: 600;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.kbd {
+    background-color: rgba(0, 0, 0, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-family: monospace;
+    font-size: 10px;
+    color: #fff;
+}
+
+/* ============================================================ */
+/* RESULTS SCREEN                                               */
+/* ============================================================ */
+#screenResults {
+    display: none;
+}
+
+.results-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.plot-wrapper {
+    background: #1e1e24;
+    border-radius: 8px;
+    border: 1px solid var(--bg-card-border);
+    padding: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: center;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+#csfPlotCanvas {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+}
+
+.fit-card {
+    width: 100%;
+    background: #181822;
+    border: 1px solid #2e2e40;
+    border-radius: 8px;
+    padding: 16px 20px;
+}
+
+.fit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.fit-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.fit-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.fit-value {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.export-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+}
+
+.btn-secondary {
+    background-color: #262938;
+    color: #e0e0e0;
+    border: 1px solid #3d4157;
+    border-radius: 6px;
+    padding: 10px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+    background-color: #35394d;
+    border-color: var(--accent);
+    color: #fff;
+}
+
+@media (max-width: 680px) {
+    .response-controls-2ifc {
+        gap: 12px;
+        bottom: 16px;
+    }
+    .btn-2ifc {
+        padding: 12px 18px;
+        min-width: 135px;
+        font-size: 16px;
+    }
+    .card {
+        padding: 18px;
+    }
+}

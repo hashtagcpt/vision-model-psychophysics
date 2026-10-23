@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Dipper Functions (TvC): ON vs. OFF Difference of Gaussians (DoG) with QUEST+</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- Top Bar with Progress & Navigation -->
+    <div id="topBar">
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <a href="../index.html" class="hub-nav-link">← Suite Hub</a>
+            <span style="font-weight: 600; font-size: 15px; color: #00bcd4;">Dipper Functions: ON vs. OFF DoG</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div class="progress-track">
+                <div id="progressBar" class="progress-fill"></div>
+            </div>
+            <span id="progressText" style="font-size: 13px; color: #ccc; min-width: 140px; text-align: right;">Initializing...</span>
+        </div>
+    </div>
+
+    <!-- Main Experiment Canvas -->
+    <canvas id="experimentCanvas"></canvas>
+
+    <!-- 2IFC Response Touch Controls (Surface Pro Touch Screen / Mouse) -->
+    <div id="touchControls">
+        <button id="btnInterval1" class="btn-choice">
+            First Interval<br>
+            <span style="font-size: 12px; font-weight: normal; color: #888;">[Key: 1 / ← / F]</span>
+        </button>
+        <button id="btnInterval2" class="btn-choice">
+            Second Interval<br>
+            <span style="font-size: 12px; font-weight: normal; color: #888;">[Key: 2 / → / J]</span>
+        </button>
+    </div>
+
+    <!-- Setup Modal -->
+    <div id="setupModal" class="modal-overlay">
+        <div class="modal-card">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h1 style="font-size: 22px; font-weight: 700; color: #fff;">Dipper Functions: Contrast Discrimination (TvC)</h1>
+                <p style="font-size: 14px; color: #aaa; margin-top: 4px;">
+                    ON vs. OFF Difference of Gaussians (DoG) in Foveal Center (0°) and Periphery (4°)
+                </p>
+                <div class="badge-row">
+                    <span class="badge">2IFC Pedestal Masking</span>
+                    <span class="badge badge-green">ON vs. OFF Antagonism</span>
+                    <span class="badge badge-amber">Center (0°) &amp; Periphery (4°)</span>
+                    <span class="badge">Watson (2017) QUEST+</span>
+                    <span class="badge" style="background: rgba(0, 188, 212, 0.15); border-color: rgba(0, 188, 212, 0.4); color: #00bcd4;">WebGL2 Hardware Shaders</span>
+                    <span class="badge" style="background: rgba(0, 230, 118, 0.15); border-color: rgba(0, 230, 118, 0.4); color: #00e676;">VSync Sub-ms Timing (120ms)</span>
+                </div>
+            </div>
+
+            <!-- Subject Code Section -->
+            <div class="form-group" style="background: rgba(255,255,255,0.03); padding: 14px; border-radius: 8px; border: 1px solid #333344;">
+                <label for="participantId" style="color: #00bcd4; font-size: 14px; font-weight: 600;">Observer / Subject Code (Required for Data Export):</label>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px;">
+                    <input type="text" id="participantId" class="form-control" placeholder="e.g. OBS_01" style="font-family: monospace; font-size: 15px; font-weight: bold; flex: 1; min-width: 170px;">
+                    <button type="button" id="btnGenSubjectCode" class="btn-secondary" style="white-space: nowrap;" title="Auto-generate next sequential observer code">⚙ Auto-Generate</button>
+                    <select id="selectExistingSubject" class="form-control" style="max-width: 230px; background: #12121a; color: #00bcd4; font-size: 13px; font-weight: 600; cursor: pointer;" title="Select an existing observer from previous sessions">
+                        <option value="" disabled selected>👤 Select Existing User</option>
+                    </select>
+                </div>
+                <div id="subjectCodeError" style="color: #ff5252; font-size: 12px; margin-top: 6px; display: none;">
+                    Please enter or generate a valid Subject Code before starting.
+                </div>
+            </div>
+
+            <!-- Experiment Configuration -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px;">
+                <div class="form-group">
+                    <label for="selectPolarity">Stimulus Polarity:</label>
+                    <select id="selectPolarity" class="form-control">
+                        <option value="BOTH" selected>Both (ON-Center &amp; OFF-Center)</option>
+                        <option value="ON">ON-Center Only (Bright center, dark surround)</option>
+                        <option value="OFF">OFF-Center Only (Dark center, bright surround)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="selectEccentricity">Retinal Eccentricity:</label>
+                    <select id="selectEccentricity" class="form-control">
+                        <option value="BOTH" selected>Both (Center 0° &amp; Periphery 4°)</option>
+                        <option value="CENTER">Center 0° Only (Foveal)</option>
+                        <option value="PERIPH">Periphery 4° Only (Eccentric)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                <div class="form-group">
+                    <label for="selectPedestals">Pedestal Contrast Resolution:</label>
+                    <select id="selectPedestals" class="form-control">
+                        <option value="standard" selected>Standard (8 pedestals: 0%, 1%, 2%, 4%, 8%, 16%, 32%, 50%)</option>
+                        <option value="quick">Quick Demo (5 pedestals: 0%, 2%, 6%, 18%, 45%)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="selectTrials">Trials per Condition:</label>
+                    <select id="selectTrials" class="form-control">
+                        <option value="10">10 trials (Fast Screening)</option>
+                        <option value="15" selected>15 trials (Standard Precision)</option>
+                        <option value="20">20 trials (High Precision)</option>
+                        <option value="25">25 trials (Publication Quality)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: 8px; border: 1px solid #333344; margin: 12px 0; flex-wrap: wrap; gap: 8px;">
+                <span style="font-size: 13px; color: #ccc;">Screen &amp; Viewing Distance: <strong id="dipperCalibText" style="color: #00e676;">57.3 cm (41.9 px/&deg;)</strong></span>
+                <div style="display: flex; gap: 6px;">
+                    <button type="button" class="btn-secondary" onclick="window.screenCalibrator && window.screenCalibrator.openCalibrationModal()" style="font-size: 11px; padding: 4px 10px; color: #ffb300; border-color: rgba(255, 179, 0, 0.4);">💳 Size</button>
+                    <button type="button" class="btn-secondary" onclick="window.perceptualCalibrator && window.perceptualCalibrator.openModal('timing')" style="font-size: 11px; padding: 4px 10px; color: #00bcd4; border-color: rgba(0, 188, 212, 0.4);">⏱ Timing</button>
+                    <button type="button" class="btn-secondary" onclick="window.perceptualCalibrator && window.perceptualCalibrator.openModal('contrast')" style="font-size: 11px; padding: 4px 10px; color: #00e676; border-color: rgba(0, 230, 118, 0.4);">🌓 Contrast</button>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>Psychophysics Procedure (Two-Interval Forced Choice):</strong><br>
+                1. <strong>Interval 1</strong> (500 Hz tone, <strong>120 ms stimulus</strong>) &rarr; 400 ms blank ISI &rarr; <strong>Interval 2</strong> (750 Hz tone, <strong>120 ms stimulus</strong>).<br>
+                2. One interval contains the <strong>Pedestal</strong> ($C_{ped}$); the other contains the <strong>Pedestal + Increment</strong> ($C_{ped} + \Delta C$).<br>
+                3. Choose which interval had higher contrast: press <strong>1</strong> (First) or <strong>2</strong> (Second).<br>
+                4. <strong>Trial Feedback:</strong> Correct &rarr; high chime + green outline; Incorrect &rarr; low buzz + red outline.<br>
+                5. For peripheral trials ($4^\circ$), maintain gaze on central fixation while judging the peripheral box.
+            </div>
+
+            <!-- Hardware Diagnostic Report -->
+            <div id="hardwareReportContainer"></div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px;">
+                <a href="../index.html" class="hub-nav-link">← Return to Suite Hub</a>
+                <button id="btnStart" class="btn-primary">Launch Dipper Experiment [Space / Enter]</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Modal -->
+    <div id="resultsModal" class="modal-overlay" style="display: none;">
+        <div class="modal-card">
+            <div style="text-align: center; margin-bottom: 16px;">
+                <h2 style="font-size: 22px; font-weight: 700; color: #fff;">Dipper Functions Complete: TvC Curves &amp; Facilitation</h2>
+                <p style="font-size: 13px; color: #aaa;">Estimated increment thresholds $\Delta C$ across pedestal contrasts $C_{ped}$ with QUEST+ Bayesian estimation</p>
+            </div>
+
+            <!-- Auto-download banner -->
+            <div id="csvAutoDownloadBanner" style="display: none; background: rgba(0, 230, 118, 0.12); border: 1px solid rgba(0, 230, 118, 0.4); border-radius: 8px; padding: 10px 16px; margin-bottom: 14px; text-align: center; color: #00e676; font-size: 13px;">
+                ✓ <strong>Automated CSV Export:</strong> <span id="csvAutoDownloadText">Dataset has been downloaded.</span>
+            </div>
+
+            <!-- Dipper Multi-Curve Plot -->
+            <canvas id="plotCanvas" width="780" height="320" style="width: 100%; border-radius: 8px; border: 1px solid #333344;"></canvas>
+
+            <!-- Summary Table -->
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Polarity</th>
+                            <th>Eccentricity</th>
+                            <th>Pedestal Contrast</th>
+                            <th>Increment Threshold (&Delta;C)</th>
+                            <th>Log10 &Delta;C</th>
+                            <th>95% Credible Interval</th>
+                            <th>Dipper Effect</th>
+                        </tr>
+                    </thead>
+                    <tbody id="summaryTableBody">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Export Buttons -->
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 18px;">
+                <button class="btn-secondary" onclick="window.dipperExperiment.exporter.downloadFullCSV(window.dipperExperiment.summaryData, window.dipperExperiment.modelFits)">
+                    ⬇ Complete Dataset (.csv)
+                </button>
+                <button class="btn-secondary" onclick="window.dipperExperiment.exporter.downloadSummaryCSV(window.dipperExperiment.summaryData, window.dipperExperiment.modelFits)">
+                    ⬇ Summary Table (.csv)
+                </button>
+                <button class="btn-secondary" onclick="window.dipperExperiment.exporter.downloadTrialCSV()">
+                    ⬇ Trial Logs (.csv)
+                </button>
+                <button class="btn-secondary" onclick="window.dipperExperiment.exporter.downloadJSON(window.dipperExperiment.summaryData, window.dipperExperiment.modelFits)">
+                    ⬇ Session JSON (.json)
+                </button>
+                <button class="btn-secondary" onclick="window.dipperExperiment.exporter.downloadPlotPNG(document.getElementById('plotCanvas'))">
+                    🖼 Save Plot (.png)
+                </button>
+                <a href="../results_viewer.html" class="btn-secondary" style="text-decoration: none; display: inline-flex; align-items: center; color: #00bcd4; border-color: rgba(0, 188, 212, 0.4);">
+                    📊 View Subject Data &amp; Fits
+                </a>
+                <a href="../index.html" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center;">
+                    ← Return to Suite Hub
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../vision_shared/js/subject_manager.js"></script>
+    <script src="../vision_shared/js/screen_calibrator.js"></script>
+    <script src="../vision_shared/js/webgl_stimulus_engine.js"></script>
+    <script src="../vision_shared/js/perceptual_calibration.js"></script>
+    <script src="js/questplus.js"></script>
+    <script src="js/dog_renderer.js"></script>
+    <script src="js/hardware_checker.js"></script>
+    <script src="js/dipper_exporter.js"></script>
+    <script src="js/experiment_dipper.js"></script>
+</body>
+</html>

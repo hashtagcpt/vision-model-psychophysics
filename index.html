@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Vision Science Psychophysics Suite — Surface Pro & Web Platforms</title>
+    <style>
+        :root {
+            --bg-primary: #0e0e13;
+            --bg-card: #181822;
+            --bg-card-hover: #1f1f2c;
+            --card-border: #2a2a3c;
+            --accent: #00bcd4;
+            --accent-glow: rgba(0, 188, 212, 0.35);
+            --text-main: #f0f0f5;
+            --text-muted: #9a9ab0;
+            --green: #00e676;
+            --amber: #ffb300;
+            --purple: #b388ff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 28px 20px 60px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1140px;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        header h1 {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #ffffff 40%, #00bcd4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            font-size: 15px;
+            color: var(--text-muted);
+            max-width: 720px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+
+        .meta-badges {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .badge-cyan {
+            background: rgba(0, 188, 212, 0.12);
+            border-color: rgba(0, 188, 212, 0.35);
+            color: var(--accent);
+        }
+
+        .badge-green {
+            background: rgba(0, 230, 118, 0.12);
+            border-color: rgba(0, 230, 118, 0.35);
+            color: var(--green);
+        }
+
+        .badge-purple {
+            background: rgba(179, 136, 255, 0.12);
+            border-color: rgba(179, 136, 255, 0.35);
+            color: var(--purple);
+        }
+
+        /* Subject ID Bar */
+        .subject-bar {
+            background: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .subject-input-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .subject-input-group label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--accent);
+            white-space: nowrap;
+        }
+
+        .subject-input-group input {
+            background: #0a0a0f;
+            border: 1px solid #333348;
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: #fff;
+            font-family: monospace;
+            font-size: 15px;
+            font-weight: bold;
+            width: 260px;
+        }
+
+        .subject-input-group input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .btn-action {
+            background: rgba(255, 255, 255, 0.08);
+            color: #ddd;
+            font-weight: 600;
+            font-size: 13px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 9px 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-action:hover {
+            background: rgba(255, 255, 255, 0.16);
+            color: #fff;
+        }
+
+        /* Hardware Diagnostic Pill */
+        #hardwarePillContainer {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            font-size: 12px;
+        }
+
+        .hw-pill {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid #333348;
+            padding: 4px 10px;
+            border-radius: 6px;
+            color: #aaa;
+        }
+
+        .hw-pill strong {
+            color: #fff;
+        }
+
+        /* Experiment Grid */
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .experiment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 24px;
+            margin-bottom: 36px;
+        }
+
+        .experiment-card {
+            background: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.25s ease;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .experiment-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: transparent;
+            transition: background 0.25s ease;
+        }
+
+        .experiment-card:hover {
+            background: var(--bg-card-hover);
+            transform: translateY(-4px);
+            border-color: #3e3e58;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+        }
+
+        .experiment-card.card-csf:hover::before {
+            background: linear-gradient(90deg, #40c4ff, #00e676);
+        }
+
+        .experiment-card.card-dipper:hover::before {
+            background: linear-gradient(90deg, #00bcd4, #ffb300);
+        }
+
+        .experiment-card.card-dog:hover::before {
+            background: linear-gradient(90deg, #b388ff, #ff4081);
+        }
+
+        .card-header {
+            margin-bottom: 14px;
+        }
+
+        .card-tag {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 6px;
+            display: inline-block;
+        }
+
+        .card-csf .card-tag { color: #40c4ff; }
+        .card-dipper .card-tag { color: #00bcd4; }
+        .card-dog .card-tag { color: #b388ff; }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+
+        .card-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.4;
+            margin-bottom: 14px;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin: 14px 0 20px 0;
+            font-size: 13px;
+            color: #bbb;
+        }
+
+        .feature-list li {
+            padding: 5px 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            line-height: 1.4;
+        }
+
+        .feature-list li::before {
+            content: "•";
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 16px;
+            line-height: 14px;
+        }
+
+        .card-footer {
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .btn-launch {
+            flex: 1;
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            border: none;
+        }
+
+        .btn-launch-csf {
+            background: linear-gradient(135deg, #40c4ff, #0091ea);
+            color: #000;
+        }
+        .btn-launch-csf:hover {
+            box-shadow: 0 4px 18px rgba(64, 196, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-launch-dipper {
+            background: linear-gradient(135deg, #00bcd4, #00838f);
+            color: #000;
+        }
+        .btn-launch-dipper:hover {
+            box-shadow: 0 4px 18px rgba(0, 188, 212, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-launch-dog {
+            background: linear-gradient(135deg, #b388ff, #7c4dff);
+            color: #000;
+        }
+        .btn-launch-dog:hover {
+            box-shadow: 0 4px 18px rgba(179, 136, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* Interactive Visualizer Section */
+        .visualizer-card {
+            background: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+            margin-bottom: 36px;
+        }
+
+        .visualizer-controls {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+
+        .vis-tab-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 8px 16px;
+            border-radius: 8px;
+            color: #aaa;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .vis-tab-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #000;
+        }
+
+        .vis-slider-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #ccc;
+        }
+
+        .vis-slider-group input[type="range"] {
+            width: 120px;
+            accent-color: var(--accent);
+        }
+
+        .vis-canvas-container {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            background: #0a0a0f;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #252535;
+        }
+
+        /* Hardware Modal / Expander */
+        .hw-details-card {
+            background: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px;
+            font-size: 13px;
+        }
+
+        footer {
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            margin-top: 30px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- Header -->
+        <header>
+            <h1>Vision Science Psychophysics Suite</h1>
+            <p>
+                Integrated visual psychophysics laboratory running Bayesian adaptive threshold estimation 
+                (QUEST+) on Microsoft Surface Pro 11 OLED (10-bit HDR) &amp; HTML5 Canvas / WebGL.
+            </p>
+            <div class="meta-badges">
+                <span class="badge badge-cyan">Surface Pro OLED Calibrated</span>
+                <span class="badge badge-green">10-Bit HDR BT.2020</span>
+                <span class="badge">120 Hz Measured Refresh</span>
+                <span class="badge badge-purple">Watson (2017) QUEST+</span>
+                <span class="badge" style="background: rgba(0, 188, 212, 0.15); border-color: rgba(0, 188, 212, 0.4); color: #00bcd4;">WebGL2 Hardware Shaders</span>
+                <span class="badge" style="background: rgba(0, 230, 118, 0.15); border-color: rgba(0, 230, 118, 0.4); color: #00e676;">VSync Sub-ms Timing</span>
+            </div>
+            <div style="margin-top: 18px;">
+                <a href="results_viewer.html" class="btn-launch" style="background: linear-gradient(135deg, #00e676, #00bcd4); color: #000; font-size: 15px; font-weight: 800; padding: 12px 26px; text-decoration: none; border-radius: 10px; box-shadow: 0 4px 20px rgba(0, 230, 118, 0.35); display: inline-flex; align-items: center; gap: 8px;">
+                    📊 View Subject Data Fits (CSF, TvC &amp; All Parameters)
+                </a>
+            </div>
+        </header>
+
+        <!-- Master Subject Code & Hardware Bar -->
+        <div class="subject-bar">
+            <div class="subject-input-group">
+                <label for="masterSubjectCode">Subject Code:</label>
+                <input type="text" id="masterSubjectCode" placeholder="e.g. OBS_01" spellcheck="false" style="width: 170px;">
+                <button type="button" id="btnGenMasterSubject" class="btn-action" title="Auto-generate next sequential observer code (e.g. OBS_01, OBS_02...)">
+                    ⚙ Auto-Generate
+                </button>
+                <select id="selectExistingSubject" class="btn-action" style="background: #12121a; color: #00bcd4; border-color: rgba(0, 188, 212, 0.4); padding: 8px 12px; font-weight: 600; cursor: pointer; max-width: 250px;" title="Select an existing observer from previous sessions">
+                    <option value="" disabled selected>👤 Select Existing User</option>
+                </select>
+                <button type="button" class="btn-action" onclick="viewCurrentSubjectFits()" style="border-color: rgba(0, 188, 212, 0.4); color: #00bcd4; font-weight: 700;">
+                    📊 View Fits
+                </button>
+                <button type="button" class="btn-action" onclick="window.screenCalibrator.openCalibrationModal()" style="border-color: rgba(255, 179, 0, 0.4); color: #ffb300; font-weight: 700;">
+                    💳 Size
+                </button>
+                <button type="button" class="btn-action" onclick="window.perceptualCalibrator.openModal('timing')" style="border-color: rgba(0, 188, 212, 0.4); color: #00bcd4; font-weight: 700;">
+                    ⏱ Timing (120ms)
+                </button>
+                <button type="button" class="btn-action" onclick="window.perceptualCalibrator.openModal('contrast')" style="border-color: rgba(0, 230, 118, 0.4); color: #00e676; font-weight: 700;">
+                    🌓 Contrast &amp; Gamma
+                </button>
+            </div>
+            <div id="hardwarePillContainer">
+                <span class="hw-pill">Display: <strong id="hwRes">Scanning...</strong></span>
+                <span class="hw-pill">Refresh: <strong id="hwFps">Measuring...</strong></span>
+                <span class="hw-pill">Engine: <strong id="hwEngine" style="color: #00bcd4;">WebGL2 (10-bit)</strong></span>
+                <span class="hw-pill" id="gammaPill" style="cursor: pointer;" onclick="window.perceptualCalibrator.openModal('contrast')" title="Click to recalibrate display gamma">
+                    Gamma: <strong id="hwGamma" style="color: #00e676;">γ = 2.20</strong>
+                </span>
+                <span class="hw-pill" id="calibPill" style="cursor: pointer;" onclick="window.screenCalibrator.openCalibrationModal()" title="Click to recalibrate with a credit card">
+                    Calibrated: <strong id="calibDist" style="color: #00e676;">57.3 cm</strong> (<span id="calibPxDeg">41.9 px/&deg;</span>)
+                </span>
+            </div>
+        </div>
+
+        <!-- Experiment Selection Grid -->
+        <div class="section-title">
+            <span>Select Psychophysics Experiment</span>
+        </div>
+
+        <div class="experiment-grid">
+
+            <!-- Card 1: CSF -->
+            <div class="experiment-card card-csf">
+                <div class="card-header">
+                    <span class="card-tag">Experiment 1</span>
+                    <h2 class="card-title">Contrast Sensitivity Function (CSF)</h2>
+                    <p class="card-subtitle">
+                        Two-Interval Forced Choice (2IFC 2AFC) detection of Gabor gratings across 8 full octaves.
+                    </p>
+                </div>
+                <ul class="feature-list">
+                    <li><strong>Range:</strong> 0.125 to 32.0 cycles/degree (9 logarithmic conditions)</li>
+                    <li><strong>Envelope:</strong> Invariant constant envelope (&sigma; = 0.50&deg;)</li>
+                    <li><strong>Isolation:</strong> Spatial bounding box with non-overlapping outer crosshairs</li>
+                    <li><strong>Phase:</strong> Randomized carrier phase trial-to-trial (&phi; &sim; U(0, 2&pi;))</li>
+                    <li><strong>Timing &amp; Feedback:</strong> 120 ms intervals &bull; Dual beeps &bull; Auditory/visual feedback</li>
+                    <li><strong>Outputs:</strong> Parabolic model fit ($S_{\max}$, $f_{\max}$, $k$, $R^2$), full CSV</li>
+                </ul>
+                <div class="card-footer">
+                    <a href="vision_experiment_csf/index.html" class="btn-launch btn-launch-csf" onclick="launchExperiment('vision_experiment_csf', event)">
+                        ▶ Launch CSF Experiment
+                    </a>
+                </div>
+            </div>
+
+            <!-- Card 2: Dipper Functions (TvC) -->
+            <div class="experiment-card card-dipper">
+                <div class="card-header">
+                    <span class="card-tag">Experiment 2 &bull; New</span>
+                    <h2 class="card-title">Dipper Functions (TvC): ON vs. OFF</h2>
+                    <p class="card-subtitle">
+                        Contrast discrimination &amp; pedestal masking with Difference of Gaussians (DoG).
+                    </p>
+                </div>
+                <ul class="feature-list">
+                    <li><strong>Stimulus:</strong> Physiologically balanced ON-center &amp; OFF-center DoG</li>
+                    <li><strong>Retinal Loci:</strong> Foveal Center (0&deg;) vs. Periphery (4&deg; visual angle)</li>
+                    <li><strong>Pedestals:</strong> 8 contrast levels (0% baseline detection up to 50% mask)</li>
+                    <li><strong>Dynamics:</strong> Maps facilitation "dip" and compressive Weber masking</li>
+                    <li><strong>Timing &amp; Feedback:</strong> 120 ms intervals &bull; Dual beeps &bull; Auditory/visual feedback</li>
+                    <li><strong>Outputs:</strong> Multi-curve TvC plot, ON/OFF asymmetry index, full CSV</li>
+                </ul>
+                <div class="card-footer">
+                    <a href="vision_experiment_dipper/index.html" class="btn-launch btn-launch-dipper" onclick="launchExperiment('vision_experiment_dipper', event)">
+                        ▶ Launch Dipper Experiment
+                    </a>
+                </div>
+            </div>
+
+            <!-- Card 3: DoG Polarity Identification -->
+            <div class="experiment-card card-dog">
+                <div class="card-header">
+                    <span class="card-tag">Experiment 3</span>
+                    <h2 class="card-title">DoG Polarity Across Scales &amp; Eccentricities</h2>
+                    <p class="card-subtitle">
+                        Single-interval 2AFC contrast threshold estimation across 12 factorial conditions.
+                    </p>
+                </div>
+                <ul class="feature-list">
+                    <li><strong>Spatial Scales:</strong> Small (&sigma; = 0.15&deg;), Medium (0.30&deg;), Large (0.60&deg;)</li>
+                    <li><strong>Eccentricities:</strong> 2.0&deg;, 4.0&deg;, 6.0&deg;, and 8.0&deg; from central fixation</li>
+                    <li><strong>Task:</strong> Discriminate bright-center (ON) vs. dark-center (OFF)</li>
+                    <li><strong>Adaptive:</strong> 12-condition interleaved Watson (2017) QUEST+</li>
+                    <li><strong>Display &amp; Feedback:</strong> 120 ms flash &bull; Immediate auditory &amp; visual feedback</li>
+                    <li><strong>Outputs:</strong> Thresholds summary CSV, trial logs, and interactive plot</li>
+                </ul>
+                <div class="card-footer">
+                    <a href="vision_experiment_dog_quest/index.html" class="btn-launch btn-launch-dog" onclick="launchExperiment('vision_experiment_dog_quest', event)">
+                        ▶ Launch Polarity Experiment
+                    </a>
+                </div>
+            </div>
+
+            <!-- Full-Width Card: Local Vision Model Psychophysics & Ideal Observer Lab -->
+            <div class="experiment-card" style="grid-column: 1 / -1; background: linear-gradient(135deg, #1e162b 0%, #121c28 100%); border-color: rgba(179, 136, 255, 0.5); box-shadow: 0 6px 28px rgba(179, 136, 255, 0.18);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+                    <div style="flex: 1; min-width: 320px;">
+                        <span class="card-tag" style="color: #b388ff;">Experiment 4 &bull; AI Vision Psychophysics &amp; Ideal Observer Lab</span>
+                        <h2 class="card-title" style="font-size: 22px; color: #fff;">Vision Model Psychophysics &amp; Ideal Observer Characterization</h2>
+                        <p class="card-subtitle" style="margin-bottom: 10px;">
+                            Evaluate local neural vision backbones (<strong>ConvNet</strong>, <strong>ViT Patch-Attention</strong>), local VLMs (<strong>Ollama <code>llava:latest</code></strong>), and bio-inspired <strong>V1 Gabor Banks</strong> against canonical mathematical observers (<strong>SKE Ideal Observer</strong>, <strong>Pelli LAM</strong>, <strong>Lu &amp; Dosher PTM</strong>, <strong>Foley 1994 Divisive Normalization</strong>) across <strong>Equivalent Noise (TvN)</strong>, <strong>Classification Images</strong>, <strong>Critical Bandwidth</strong>, and <strong>TvC Dipper Functions</strong>.
+                        </p>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <span class="badge badge-purple">Equivalent Noise (LAM &amp; PTM)</span>
+                            <span class="badge badge-cyan">Reverse-Correlation Classification Images</span>
+                            <span class="badge badge-green">Notched-Noise Critical Bandwidth</span>
+                            <span class="badge">TvC Dipper Facilitation</span>
+                            <span class="badge">Double-Pass &amp; Ideal Observer Efficiency (&eta;)</span>
+                        </div>
+                    </div>
+                    <div>
+                        <a href="vision_model_psychophysics/index.html" class="btn-launch" style="background: linear-gradient(135deg, #b388ff, #00bcd4); color: #000; font-size: 15px; font-weight: 800; padding: 14px 26px; text-decoration: none; border-radius: 10px; white-space: nowrap; box-shadow: 0 4px 20px rgba(179, 136, 255, 0.4); display: inline-flex; align-items: center; gap: 8px;">
+                            🧠 Launch Model Psychophysics Lab &rarr;
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Full-Width Card: Psychometric Analytics & Subject Fits -->
+            <div class="experiment-card" style="grid-column: 1 / -1; background: linear-gradient(135deg, #181c28 0%, #121a24 100%); border-color: rgba(0, 188, 212, 0.45); box-shadow: 0 6px 28px rgba(0, 188, 212, 0.15);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+                    <div style="flex: 1; min-width: 320px;">
+                        <span class="card-tag" style="color: #00e676;">Psychometric Analytics Engine &bull; Fits &amp; Parameters</span>
+                        <h2 class="card-title" style="font-size: 22px; color: #fff;">Subject Data Fits (CSF, TvC &amp; All Parameters)</h2>
+                        <p class="card-subtitle" style="margin-bottom: 10px;">
+                            Inspect empirical psychophysical thresholds and mathematical model fits across all subjects and sessions: 
+                            <strong>Truncated Log-Parabolic CSF fits</strong> ($S_{\max}, f_{\max}, \beta, f_{\text{cutoff}}$), 
+                            <strong>Canonical Foley (1994) Transducer Dipper (TvC) fits</strong> ($\Delta C_0$, facilitation dip depth, Weber masking slope, ON/OFF asymmetry), 
+                            and <strong>Cortical Magnification ($E_2$)</strong>.
+                        </p>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <span class="badge badge-cyan">CSF Parabolic Fits</span>
+                            <span class="badge badge-green">Foley TvC Dipper Transducers</span>
+                            <span class="badge badge-purple">DoG Scale &times; Eccentricity (E_2)</span>
+                            <span class="badge">Drag &amp; Drop CSV / JSON Parser</span>
+                            <span class="badge">Print / Export PDF Reports</span>
+                        </div>
+                    </div>
+                    <div>
+                        <a href="results_viewer.html" class="btn-launch" style="background: linear-gradient(135deg, #00bcd4, #00e676); color: #000; font-size: 15px; font-weight: 800; padding: 14px 26px; text-decoration: none; border-radius: 10px; white-space: nowrap; box-shadow: 0 4px 20px rgba(0, 188, 212, 0.4); display: inline-flex; align-items: center; gap: 8px;">
+                            📊 Open Subject Fits Viewer &rarr;
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Live Interactive Stimulus Visualizer Widget -->
+        <div class="visualizer-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+                <div class="section-title" style="margin-bottom: 0;">
+                    <span>Live Stimulus Visualizer &amp; Psychophysics Preview</span>
+                </div>
+                <div class="visualizer-controls">
+                    <button type="button" class="vis-tab-btn active" onclick="switchVisTab('gabor')">Gabor Grating (CSF)</button>
+                    <button type="button" class="vis-tab-btn" onclick="switchVisTab('on_dog')">ON-Center DoG</button>
+                    <button type="button" class="vis-tab-btn" onclick="switchVisTab('off_dog')">OFF-Center DoG</button>
+                    <button type="button" class="vis-tab-btn" onclick="switchVisTab('dipper')">Dipper (Pedestal + Inc)</button>
+                </div>
+            </div>
+
+            <div class="visualizer-controls" id="visDynamicControls">
+                <!-- Dynamically populated sliders -->
+            </div>
+
+            <div class="vis-canvas-container">
+                <div style="text-align: center;">
+                    <div style="font-size: 11px; color: #888; margin-bottom: 6px;">2D Stimulus Appearance (Mid-Grey Background)</div>
+                    <canvas id="visPatchCanvas" width="220" height="220" style="border-radius: 8px; border: 1px solid #333348;"></canvas>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 11px; color: #888; margin-bottom: 6px;">1D Horizontal Luminance Cross-Section</div>
+                    <canvas id="visProfileCanvas" width="380" height="220" style="border-radius: 8px; border: 1px solid #333348;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hardware Diagnostic Details -->
+        <div class="hw-details-card">
+            <h3 style="font-size: 16px; margin-bottom: 12px; color: #00bcd4;">Surface Pro 11 Hardware Architecture &amp; Calibration</h3>
+            <p style="color: #aaa; line-height: 1.6; margin-bottom: 12px;">
+                Direct DirectX Diagnostics (<code>dxdiag</code>) and browser WebGL/WebGPU verification confirm that this Surface Pro 11 is equipped with a Samsung 120Hz OLED panel (2880 &times; 1920) and Qualcomm&reg; Adreno&trade; X1-85 GPU running in active Windows HDR mode (<code>DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020</code>).
+                High-frequency spatial noise dithering extends effective contrast resolution down to <strong>0.1% contrast (Sensitivity S &approx; 1000)</strong>, enabling accurate psychophysical measurement far below the physical 8-bit quantization floor.
+            </p>
+            <div id="fullHardwareReport">Scanning hardware details...</div>
+        </div>
+
+        <footer>
+            Vision Science Psychophysics Suite &bull; PsychoJS / HTML5 Canvas / WebGL2 &bull; 
+            Watson (2017) Multidimensional QUEST+ Adaptive Method &bull; Windows 11 ARM64 OLED Certified
+        </footer>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="vision_shared/js/subject_manager.js"></script>
+    <script src="vision_shared/js/screen_calibrator.js"></script>
+    <script src="vision_shared/js/webgl_stimulus_engine.js"></script>
+    <script src="vision_shared/js/perceptual_calibration.js"></script>
+    <script src="vision_experiment_csf/js/hardware_checker.js"></script>
+    <script>
+        // Master Subject Code Manager
+        const masterSubjInput = document.getElementById("masterSubjectCode");
+        const btnGenMaster = document.getElementById("btnGenMasterSubject");
+        const selectExistingSubj = document.getElementById("selectExistingSubject");
+
+        // Initialize SubjectManager UI Binding
+        if (window.subjectManager) {
+            window.subjectManager.bindUi({
+                inputEl: "masterSubjectCode",
+                selectEl: "selectExistingSubject",
+                btnGenEl: "btnGenMasterSubject"
+            });
+        }
+
+        function generateUniqueSubjectCode() {
+            if (window.subjectManager) {
+                return window.subjectManager.generateSensibleSubjectCode();
+            }
+            const code = "OBS_01";
+            if (masterSubjInput) masterSubjInput.value = code;
+            try { localStorage.setItem("vision_suite_subject_code", code); } catch (e) {}
+            return code;
+        }
+
+        // Launch experiment helper passing active subject code
+        function launchExperiment(folderName, event) {
+            if (event && event.preventDefault) {
+                event.preventDefault();
+            }
+            let code = "OBS_01";
+            try {
+                if (window.subjectManager) {
+                    code = window.subjectManager.getActiveSubject();
+                } else if (masterSubjInput && masterSubjInput.value) {
+                    code = masterSubjInput.value.trim().toUpperCase();
+                }
+                localStorage.setItem("vision_suite_subject_code", code);
+            } catch (e) {
+                console.warn("Storage exception:", e);
+            }
+            const targetUrl = `${folderName}/index.html?subject=${encodeURIComponent(code)}`;
+            window.location.href = targetUrl;
+        }
+
+        // View subject fits helper passing active subject code
+        function viewCurrentSubjectFits(event) {
+            if (event && event.preventDefault) {
+                event.preventDefault();
+            }
+            let code = "OBS_01";
+            try {
+                if (window.subjectManager) {
+                    code = window.subjectManager.getActiveSubject();
+                } else if (masterSubjInput && masterSubjInput.value) {
+                    code = masterSubjInput.value.trim().toUpperCase();
+                }
+                localStorage.setItem("vision_suite_subject_code", code);
+            } catch (e) {}
+            window.location.href = `results_viewer.html?subject=${encodeURIComponent(code)}`;
+        }
+
+        // Hardware Diagnostic Check
+        async function runSuiteHardwareCheck() {
+            try {
+                const checker = new HardwareChecker();
+                await checker.runAllChecks();
+                const report = checker.getReport();
+
+                const resEl = document.getElementById("hwRes");
+                const fpsEl = document.getElementById("hwFps");
+                const hdrEl = document.getElementById("hwHdr");
+                const gpuEl = document.getElementById("hwGpu");
+
+                if (resEl) resEl.innerText = report.screen?.physicalResolution || "2880 x 1920";
+                if (fpsEl) fpsEl.innerText = report.screen?.measuredFps ? `${report.screen.measuredFps} Hz` : "120 Hz";
+                if (hdrEl) hdrEl.innerText = report.screen?.isHighDynamicRange ? "10-Bit HDR (P3/Rec.2020)" : "SDR 8-Bit";
+                if (gpuEl) gpuEl.innerText = report.gpu?.unmaskedRenderer?.replace("ANGLE (", "").replace(")", "").slice(0, 24) || "Adreno X1-85";
+
+                const fullRepEl = document.getElementById("fullHardwareReport");
+                if (fullRepEl) {
+                    fullRepEl.innerHTML = `
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 10px;">
+                            <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; border: 1px solid #333348;">
+                                <strong style="color: #00bcd4;">Screen &amp; Refresh:</strong><br>
+                                Resolution: ${report.screen?.physicalResolution}<br>
+                                DPR: ${report.screen?.devicePixelRatio}<br>
+                                Frame Rate: <strong>${report.screen?.measuredFps} Hz</strong><br>
+                                Dynamic Range: ${report.screen?.isHighDynamicRange ? "High Dynamic Range (HDR)" : "Standard Dynamic Range"}
+                            </div>
+                            <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; border: 1px solid #333348;">
+                                <strong style="color: #ffb300;">GPU Pipeline:</strong><br>
+                                GPU: ${report.gpu?.unmaskedRenderer}<br>
+                                10-Bit Buffer: <strong>${report.gpu?.webgl2_rgb10a2 ? "RGB10_A2 Supported" : "Standard"}</strong><br>
+                                Float Render: ${report.gpu?.webgl2_float ? "RGBA16F Supported" : "Standard"}<br>
+                                WebGPU API: ${report.gpu?.webgpuAvailable ? "Available" : "Not supported"}
+                            </div>
+                            <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; border: 1px solid #333348;">
+                                <strong style="color: #00e676;">Platform:</strong><br>
+                                CPU Cores: ${report.platform?.logicalCores || navigator.hardwareConcurrency || 8}<br>
+                                RAM Estimate: ${report.platform?.deviceMemoryGB ? report.platform.deviceMemoryGB + " GB" : "16 GB"}<br>
+                                Multi-Touch: ${report.platform?.maxTouchPoints} Points (Surface Touch)<br>
+                                Platform: ${report.platform?.platform || "ARM64"}
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (e) {
+                console.warn("Suite hardware check had error:", e);
+            }
+        }
+        window.addEventListener("DOMContentLoaded", runSuiteHardwareCheck);
+
+        // --- INTERACTIVE STIMULUS VISUALIZER ---
+        let currentVisTab = "gabor";
+        let visParams = {
+            sf: 2.0,
+            contrast: 0.25,
+            pedestal: 0.04,
+            increment: 0.02
+        };
+
+        const patchCanvas = document.getElementById("visPatchCanvas");
+        const patchCtx = patchCanvas.getContext("2d");
+        const profileCanvas = document.getElementById("visProfileCanvas");
+        const profileCtx = profileCanvas.getContext("2d");
+
+        function switchVisTab(tabName) {
+            currentVisTab = tabName;
+            document.querySelectorAll(".vis-tab-btn").forEach(btn => {
+                btn.classList.toggle("active", btn.getAttribute("onclick").includes(tabName));
+            });
+            renderVisControls();
+            drawVisStimulus();
+        }
+
+        function renderVisControls() {
+            const ctrlContainer = document.getElementById("visDynamicControls");
+            if (!ctrlContainer) return;
+
+            if (currentVisTab === "gabor") {
+                ctrlContainer.innerHTML = `
+                    <div class="vis-slider-group">
+                        <label>Spatial Frequency: <strong id="valSf">${visParams.sf.toFixed(2)} cpd</strong></label>
+                        <input type="range" min="0.25" max="16.0" step="0.25" value="${visParams.sf}" 
+                            oninput="visParams.sf = parseFloat(this.value); document.getElementById('valSf').innerText = this.value + ' cpd'; drawVisStimulus();">
+                    </div>
+                    <div class="vis-slider-group">
+                        <label>Contrast: <strong id="valCt">${(visParams.contrast * 100).toFixed(0)}%</strong></label>
+                        <input type="range" min="0.01" max="1.0" step="0.01" value="${visParams.contrast}" 
+                            oninput="visParams.contrast = parseFloat(this.value); document.getElementById('valCt').innerText = (this.value * 100).toFixed(0) + '%'; drawVisStimulus();">
+                    </div>
+                `;
+            } else if (currentVisTab === "on_dog" || currentVisTab === "off_dog") {
+                ctrlContainer.innerHTML = `
+                    <div class="vis-slider-group">
+                        <label>Contrast: <strong id="valCt">${(visParams.contrast * 100).toFixed(0)}%</strong></label>
+                        <input type="range" min="0.01" max="1.0" step="0.01" value="${visParams.contrast}" 
+                            oninput="visParams.contrast = parseFloat(this.value); document.getElementById('valCt').innerText = (this.value * 100).toFixed(0) + '%'; drawVisStimulus();">
+                    </div>
+                `;
+            } else if (currentVisTab === "dipper") {
+                ctrlContainer.innerHTML = `
+                    <div class="vis-slider-group">
+                        <label>Pedestal Contrast (C_ped): <strong id="valPed">${(visParams.pedestal * 100).toFixed(1)}%</strong></label>
+                        <input type="range" min="0.0" max="0.5" step="0.01" value="${visParams.pedestal}" 
+                            oninput="visParams.pedestal = parseFloat(this.value); document.getElementById('valPed').innerText = (this.value * 100).toFixed(1) + '%'; drawVisStimulus();">
+                    </div>
+                    <div class="vis-slider-group">
+                        <label>Test Increment (&Delta;C): <strong id="valInc">${(visParams.increment * 100).toFixed(2)}%</strong></label>
+                        <input type="range" min="0.002" max="0.10" step="0.002" value="${visParams.increment}" 
+                            oninput="visParams.increment = parseFloat(this.value); document.getElementById('valInc').innerText = (this.value * 100).toFixed(2) + '%'; drawVisStimulus();">
+                    </div>
+                `;
+            }
+        }
+
+        function drawVisStimulus() {
+            const pw = patchCanvas.width;
+            const ph = patchCanvas.height;
+            const imgData = patchCtx.createImageData(pw, ph);
+            const data = imgData.data;
+
+            const halfW = pw / 2;
+            const halfH = ph / 2;
+            const bgLum = 128;
+            const profileRow = [];
+
+            for (let y = 0; y < ph; y++) {
+                const dy = y - halfH;
+                const isMidRow = (y === Math.floor(halfH));
+
+                for (let x = 0; x < pw; x++) {
+                    const dx = x - halfW;
+                    const r2 = dx * dx + dy * dy;
+
+                    let delta = 0;
+
+                    if (currentVisTab === "gabor") {
+                        const sigma = 32; // px
+                        const envelope = Math.exp(-r2 / (2 * sigma * sigma));
+                        const lambda = 18 / visParams.sf; // wavelength px
+                        const carrier = Math.cos((2 * Math.PI * dx) / lambda);
+                        delta = visParams.contrast * envelope * carrier;
+                    } else if (currentVisTab === "on_dog" || currentVisTab === "off_dog") {
+                        const sigmaC = 16;
+                        const sigmaS = 32;
+                        const balanceRatio = Math.pow(sigmaC / sigmaS, 2.0);
+                        const gC = Math.exp(-r2 / (2 * sigmaC * sigmaC));
+                        const gS = Math.exp(-r2 / (2 * sigmaS * sigmaS));
+                        const rawDog = (gC - balanceRatio * gS) / (1.0 - balanceRatio);
+                        const sign = (currentVisTab === "on_dog") ? 1.0 : -1.0;
+                        delta = sign * visParams.contrast * rawDog;
+                    } else if (currentVisTab === "dipper") {
+                        // Dipper: Pedestal + Increment
+                        const sigmaC = 16;
+                        const sigmaS = 32;
+                        const balanceRatio = Math.pow(sigmaC / sigmaS, 2.0);
+                        const gC = Math.exp(-r2 / (2 * sigmaC * sigmaC));
+                        const gS = Math.exp(-r2 / (2 * sigmaS * sigmaS));
+                        const rawDog = (gC - balanceRatio * gS) / (1.0 - balanceRatio);
+                        const totalC = visParams.pedestal + visParams.increment;
+                        delta = totalC * rawDog;
+                    }
+
+                    let lum = Math.max(0, Math.min(255, Math.round(bgLum * (1.0 + delta))));
+                    const idx = (y * pw + x) * 4;
+                    data[idx] = lum;
+                    data[idx + 1] = lum;
+                    data[idx + 2] = lum;
+                    data[idx + 3] = 255;
+
+                    if (isMidRow) {
+                        profileRow.push(lum);
+                    }
+                }
+            }
+            patchCtx.putImageData(imgData, 0, 0);
+
+            // Draw bounding box
+            patchCtx.strokeStyle = "rgba(45, 45, 45, 0.9)";
+            patchCtx.lineWidth = 2;
+            patchCtx.strokeRect(10, 10, pw - 20, ph - 20);
+
+            // Draw 1D Luminance Profile
+            const prw = profileCanvas.width;
+            const prh = profileCanvas.height;
+            profileCtx.fillStyle = "#0e0e13";
+            profileCtx.fillRect(0, 0, prw, prh);
+
+            // Grid & mid-gray line
+            profileCtx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+            profileCtx.lineWidth = 1;
+            const midY = prh / 2;
+            profileCtx.beginPath();
+            profileCtx.moveTo(0, midY);
+            profileCtx.lineTo(prw, midY);
+            profileCtx.stroke();
+
+            profileCtx.fillStyle = "#666";
+            profileCtx.font = "11px sans-serif";
+            profileCtx.fillText("Mid-Grey (L = 128)", 10, midY - 6);
+
+            // Plot profile curve
+            profileCtx.strokeStyle = (currentVisTab === "gabor") ? "#40c4ff" : ((currentVisTab === "off_dog") ? "#ffa726" : "#00bcd4");
+            profileCtx.lineWidth = 2.5;
+            profileCtx.beginPath();
+
+            for (let i = 0; i < profileRow.length; i++) {
+                const px = (i / (profileRow.length - 1)) * (prw - 40) + 20;
+                const lumVal = profileRow[i];
+                // Invert lum to canvas Y (0 = top, 255 = bottom)
+                const py = prh - 20 - (lumVal / 255.0) * (prh - 40);
+                if (i === 0) profileCtx.moveTo(px, py);
+                else profileCtx.lineTo(px, py);
+            }
+            profileCtx.stroke();
+        }
+
+        // Initialize visualizer
+        renderVisControls();
+        drawVisStimulus();
+
+        // Screen Calibration Sync
+        function updateCalibrationPill(data) {
+            const calib = data || (window.ScreenCalibrator ? window.ScreenCalibrator.getCalibration() : null);
+            if (!calib) return;
+            const distEl = document.getElementById("calibDist");
+            const pxDegEl = document.getElementById("calibPxDeg");
+            if (distEl) distEl.innerText = `${calib.viewingDistanceCm} cm`;
+            if (pxDegEl) pxDegEl.innerHTML = `${calib.pxPerDeg ? calib.pxPerDeg.toFixed(1) : "41.9"} px/&deg; (${calib.dpi} PPI)`;
+        }
+
+        if (window.screenCalibrator) {
+            window.screenCalibrator.onCalibrateCallback = (data) => updateCalibrationPill(data);
+            updateCalibrationPill();
+        }
+        if (window.perceptualCalibrator) {
+            const gEl = document.getElementById("hwGamma");
+            if (gEl) gEl.innerText = `γ = ${window.perceptualCalibrator.calibratedGamma.toFixed(2)}`;
+        }
+    </script>
+</body>
+</html>

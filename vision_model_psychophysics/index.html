@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Psychophysics & Ideal Observer Characterization Lab — Vision Science Suite</title>
+    <style>
+        :root {
+            --bg-primary: #0b0b10;
+            --bg-card: #151520;
+            --bg-card-hover: #1c1c2b;
+            --card-border: #28283c;
+            --accent: #00bcd4;
+            --accent-glow: rgba(0, 188, 212, 0.35);
+            --text-main: #f0f0f5;
+            --text-muted: #9a9ab0;
+            --green: #00e676;
+            --amber: #ffb300;
+            --purple: #b388ff;
+            --red: #ff5252;
+            --pink: #ff4081;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 20px 24px 60px 24px;
+        }
+
+        .container {
+            max-width: 1360px;
+            margin: 0 auto;
+        }
+
+        /* Navbar */
+        .top-navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 22px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .btn-hub {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 8px 14px;
+            border-radius: 8px;
+            background: rgba(0, 188, 212, 0.12);
+            border: 1px solid rgba(0, 188, 212, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .btn-hub:hover {
+            background: rgba(0, 188, 212, 0.25);
+            color: #fff;
+        }
+
+        .top-title {
+            font-size: 23px;
+            font-weight: 800;
+            letter-spacing: -0.4px;
+            background: linear-gradient(135deg, #ffffff 35%, #00bcd4 75%, #b388ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            background: rgba(255, 255, 255, 0.07);
+            color: #e0e0e8;
+            font-weight: 600;
+            font-size: 12.5px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 8px;
+            padding: 8px 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-action:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00bcd4, #00e676);
+            color: #000;
+            border: none;
+            font-weight: 800;
+        }
+
+        /* Control Bar */
+        .control-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 18px 22px;
+            margin-bottom: 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .selector-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .selector-group label {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        select.model-select {
+            background: #0d0d14;
+            color: #fff;
+            border: 1px solid #383852;
+            border-radius: 8px;
+            padding: 9px 14px;
+            font-size: 14px;
+            font-weight: 700;
+            min-width: 310px;
+            cursor: pointer;
+        }
+
+        .overlay-pills {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .model-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 11px;
+            border-radius: 18px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.04);
+            color: #aaa;
+            user-select: none;
+            transition: all 0.15s ease;
+        }
+
+        .model-pill.active {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* KPI Strip */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 15px 18px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .kpi-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 4px;
+            font-family: "Segoe UI", monospace;
+        }
+
+        .kpi-sub {
+            font-size: 12px;
+            color: #aaa;
+            line-height: 1.35;
+        }
+
+        /* 2x2 Paradigm Grid */
+        .paradigm-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(580px, 1fr));
+            gap: 22px;
+            margin-bottom: 28px;
+        }
+
+        .paradigm-card {
+            background: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        .card-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .card-title-group h3 {
+            font-size: 17px;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 3px;
+        }
+
+        .card-title-group p {
+            font-size: 12.5px;
+            color: var(--text-muted);
+        }
+
+        .tab-group {
+            display: flex;
+            gap: 6px;
+        }
+
+        .tab-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            color: #bbb;
+            font-size: 11.5px;
+            font-weight: 600;
+            padding: 5px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .tab-btn.active {
+            background: var(--accent);
+            color: #000;
+            border-color: var(--accent);
+            font-weight: 700;
+        }
+
+        .canvas-box {
+            background: #09090e;
+            border: 1px solid #222234;
+            border-radius: 10px;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .formula-strip {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid #252538;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 12px;
+            color: #ccc;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: auto;
+        }
+
+        /* Characterization & Disagreement Section */
+        .section-card {
+            background: var(--bg-card);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 26px;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        .section-card h2 {
+            font-size: 19px;
+            font-weight: 800;
+            margin-bottom: 6px;
+            color: #fff;
+        }
+
+        .section-card > p {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 18px;
+        }
+
+        .diag-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 18px;
+        }
+
+        @media (max-width: 960px) {
+            .diag-columns, .paradigm-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .diag-box {
+            background: #0d0d15;
+            border: 1px solid #26263a;
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .diag-box h4 {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 12px;
+        }
+
+        .diag-item {
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 13px;
+            line-height: 1.45;
+        }
+
+        .diag-agree {
+            background: rgba(0, 230, 118, 0.08);
+            border-left: 3px solid var(--green);
+            color: #d8ffe8;
+        }
+
+        .diag-disagree {
+            background: rgba(255, 82, 82, 0.09);
+            border-left: 3px solid var(--red);
+            color: #ffdde0;
+        }
+
+        /* Data Table */
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table.bench-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12.5px;
+        }
+
+        table.bench-table th {
+            text-align: left;
+            padding: 11px 10px;
+            background: #0e0e17;
+            color: var(--accent);
+            border-bottom: 2px solid #2c2c44;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        table.bench-table td {
+            padding: 10px;
+            border-bottom: 1px solid #222234;
+            color: #ddd;
+            white-space: nowrap;
+        }
+
+        table.bench-table tr:hover td {
+            background: rgba(0, 188, 212, 0.06);
+        }
+
+        table.bench-table tr.selected-row td {
+            background: rgba(0, 188, 212, 0.14);
+            font-weight: 600;
+        }
+
+        .pill-badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .pill-green {
+            background: rgba(0, 230, 118, 0.15);
+            color: var(--green);
+            border: 1px solid rgba(0, 230, 118, 0.35);
+        }
+
+        .pill-amber {
+            background: rgba(255, 179, 0, 0.15);
+            color: var(--amber);
+            border: 1px solid rgba(255, 179, 0, 0.35);
+        }
+
+        .pill-red {
+            background: rgba(255, 82, 82, 0.15);
+            color: var(--red);
+            border: 1px solid rgba(255, 82, 82, 0.35);
+        }
+
+        /* Interactive Live Sandbox */
+        .sandbox-controls {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 16px;
+            background: #0d0d15;
+            padding: 14px 18px;
+            border-radius: 10px;
+            border: 1px solid #26263a;
+        }
+
+        .slider-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 12px;
+            color: #ccc;
+            min-width: 170px;
+        }
+
+        .slider-item input[type="range"] {
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- Top Navigation -->
+    <div class="top-navbar">
+        <div class="nav-left">
+            <a href="../index.html" class="btn-hub">&larr; Master Suite Hub</a>
+            <span class="top-title">Vision Model Psychophysics &amp; Ideal Observer Characterization Lab</span>
+        </div>
+        <div class="nav-actions">
+            <a href="../results_viewer.html" class="btn-action">📊 Human Subject Fits</a>
+            <button class="btn-action" onclick="exportCharacterizationCSV()">⬇ Export Efficiency CSV</button>
+            <button class="btn-action btn-primary" onclick="runLiveTrialSimulation()">⚡ Run Live 2IFC Trial Sweep</button>
+        </div>
+    </div>
+
+    <!-- Model Selection & Comparison Control Panel -->
+    <div class="control-panel">
+        <div class="control-row">
+            <div class="selector-group">
+                <label for="primaryModelSelect">Primary Tested Observer:</label>
+                <select id="primaryModelSelect" class="model-select" onchange="onPrimaryModelChange()"></select>
+                <span id="readoutBadge" class="pill-badge pill-amber">Readout: Feature Space</span>
+            </div>
+            <div style="font-size: 12.5px; color: var(--text-muted);" id="modelDescText"></div>
+        </div>
+        <div class="control-row" style="border-top: 1px solid rgba(255,255,255,0.07); padding-top: 12px;">
+            <div class="selector-group">
+                <label>Comparison Overlay Curves:</label>
+                <div class="overlay-pills" id="overlayPillsContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPI Summary Cards for Selected Observer -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-label">Total Ideal Efficiency (&eta;<sub>total</sub>)</div>
+            <div class="kpi-value" id="kpiEtaTotal" style="color: var(--accent);">--</div>
+            <div class="kpi-sub" id="kpiEtaSub">(d'<sub>model</sub> / d'<sub>ideal</sub>)&sup2; in external noise</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Template Efficiency (&eta;<sub>template</sub>)</div>
+            <div class="kpi-value" id="kpiEtaTemplate" style="color: var(--green);">--</div>
+            <div class="kpi-sub" id="kpiPbdiSub">Reverse-correlation r&sup2;(w&#770;, w<sub>ideal</sub>)</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Equivalent Internal Noise (N<sub>eq</sub>)</div>
+            <div class="kpi-value" id="kpiNeq" style="color: var(--amber);">--</div>
+            <div class="kpi-sub" id="kpiDoublePassSub">Double-pass &sigma;<sub>int</sub>/&sigma;<sub>ext</sub> = --</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Critical Bandwidth (CBW)</div>
+            <div class="kpi-value" id="kpiCbw" style="color: var(--purple);">--</div>
+            <div class="kpi-sub" id="kpiCbwSub">Notched-noise FWHM @ 4.0 cpd</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">TvC Dipper Facilitation</div>
+            <div class="kpi-value" id="kpiDipper" style="color: var(--pink);">--</div>
+            <div class="kpi-sub" id="kpiWeberSub">High-contrast Weber slope = --</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Human Psychophysics Agreement</div>
+            <div class="kpi-value" id="kpiHumanScore" style="color: #40c4ff;">--</div>
+            <div class="kpi-sub" id="kpiDisagreeCount">Vs. Foley (1994) &amp; Lu-Dosher PTM</div>
+        </div>
+    </div>
+
+    <!-- 2x2 Core Psychophysical Paradigms -->
+    <div class="paradigm-grid">
+
+        <!-- 1. Equivalent Noise (TvN) -->
+        <div class="paradigm-card">
+            <div class="card-head">
+                <div class="card-title-group">
+                    <h3>1. Equivalent Noise (TvN) &amp; PTM Criterion Ratio</h3>
+                    <p>Contrast threshold C<sub>th</sub> vs. external white noise spectral density N<sub>ext</sub> (deg&sup2;)</p>
+                </div>
+                <div class="tab-group">
+                    <button class="tab-btn active" id="btnTvnCurve" onclick="setTvnMode('tvn')">TvN Curves (d'=1.0)</button>
+                    <button class="tab-btn" id="btnTvnDual" onclick="setTvnMode('dual')">Dual Criterion (d'=1 vs 2)</button>
+                    <button class="tab-btn" id="btnTvnRatio" onclick="setTvnMode('ratio')">PTM Ratio C(2)/C(1)</button>
+                </div>
+            </div>
+            <div class="canvas-box">
+                <canvas id="canvasEqNoise" width="580" height="320"></canvas>
+            </div>
+            <div class="formula-strip" id="stripEqNoise">
+                <span><strong>LAM:</strong> E<sub>th</sub> = (d'&sup2;/&eta;) &middot; (N<sub>eq</sub> + N<sub>ext</sub>)</span>
+                <span id="eqFitSummary">Fit: N<sub>eq</sub> = --, &gamma; = --, A<sub>m</sub> = --</span>
+            </div>
+        </div>
+
+        <!-- 2. Classification Images (Reverse Correlation) -->
+        <div class="paradigm-card">
+            <div class="card-head">
+                <div class="card-title-group">
+                    <h3>2. Classification Images (2IFC Reverse Correlation)</h3>
+                    <p>Empirical perceptual template w&#770;(x,y) = E[N<sub>chosen</sub> &minus; N<sub>unchosen</sub>] vs. Ideal SKE Template</p>
+                </div>
+                <div class="tab-group">
+                    <button class="tab-btn active" id="btnCiMaps" onclick="setCiMode('maps')">2D Template &amp; Residual Maps</button>
+                    <button class="tab-btn" id="btnCiProfile" onclick="setCiMode('profile')">1D Foveal Cross-Section</button>
+                </div>
+            </div>
+            <div class="canvas-box">
+                <canvas id="canvasClassImage" width="580" height="320"></canvas>
+            </div>
+            <div class="formula-strip">
+                <span><strong>Sampling Efficiency:</strong> &eta;<sub>template</sub> = r&sup2;(w&#770;, w<sub>ideal</sub>)</span>
+                <span id="ciFitSummary">&eta;<sub>template</sub> = -- | Patch Discontinuity PBDI = --</span>
+            </div>
+        </div>
+
+        <!-- 3. Critical Bandwidth (Notched-Noise Masking) -->
+        <div class="paradigm-card">
+            <div class="card-head">
+                <div class="card-title-group">
+                    <h3>3. Critical Bandwidth (Notched-Noise Spatial Frequency Masking)</h3>
+                    <p>Threshold elevation vs. spectral notch width &Delta;f (octaves around 4.0 cpd)</p>
+                </div>
+                <div class="tab-group">
+                    <button class="tab-btn active" id="btnCbwNotch" onclick="setCbwMode('notch')">Notched-Noise Decay</button>
+                    <button class="tab-btn" id="btnCbwFilter" onclick="setCbwMode('filter')">Derived Channel Filter |H(f)|&sup2;</button>
+                </div>
+            </div>
+            <div class="canvas-box">
+                <canvas id="canvasCritBw" width="580" height="320"></canvas>
+            </div>
+            <div class="formula-strip">
+                <span><strong>Masking Integral:</strong> E<sub>mask</sub>(&Delta;f) &prop; &int; N(f,&Delta;f) |H(f)|&sup2; df</span>
+                <span id="cbwFitSummary">CBW = -- oct | &eta;<sub>bandwidth</sub> = --</span>
+            </div>
+        </div>
+
+        <!-- 4. TvC Dipper Functions -->
+        <div class="paradigm-card">
+            <div class="card-head">
+                <div class="card-title-group">
+                    <h3>4. TvC Dipper Function (Pedestal Contrast Discrimination)</h3>
+                    <p>Increment threshold &Delta;C vs. pedestal contrast C<sub>ped</sub> (Foley 1994 Nonlinear Transducer)</p>
+                </div>
+                <div class="tab-group">
+                    <button class="tab-btn active" id="btnTvcLog" onclick="setTvcMode('log')">Log-Log TvC Dipper</button>
+                    <button class="tab-btn" id="btnTvcNorm" onclick="setTvcMode('norm')">Normalized Facilitation (&Delta;C / C<sub>0</sub>)</button>
+                </div>
+            </div>
+            <div class="canvas-box">
+                <canvas id="canvasTvcDipper" width="580" height="320"></canvas>
+            </div>
+            <div class="formula-strip">
+                <span><strong>Foley (1994):</strong> R(C) = C<sup>p</sup> / (C<sub>50</sub><sup>q</sup> + C<sup>q</sup>)</span>
+                <span id="tvcFitSummary">Dip = -- dB | p = --, q = -- | Weber Slope = --</span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Mechanistic Disagreement Characterization & Ideal Observer Efficiency Decomposition -->
+    <div class="section-card">
+        <h2>Mechanistic Disagreement Characterization &amp; Ideal Observer Efficiency Decomposition</h2>
+        <p>
+            Decomposes why the selected model diverges from the Signal-Known-Exactly (SKE) Ideal Observer
+            (&eta;<sub>total</sub> = &eta;<sub>template</sub> &times; &eta;<sub>noise</sub> &times; &eta;<sub>bandwidth</sub>)
+            and diagnoses architectural agreements/disagreements against canonical cortical models.
+        </p>
+
+        <div class="diag-columns">
+            <div class="diag-box">
+                <h4 style="color: var(--green);">&#10004; Agreements with Canonical Vision Models</h4>
+                <div id="agreementsContainer"></div>
+                <h4 style="color: var(--red); margin-top: 16px;">&#9888; Architectural Disagreements &amp; Failure Mechanisms</h4>
+                <div id="disagreementsContainer"></div>
+            </div>
+            <div class="diag-box">
+                <h4 style="color: var(--accent);">Ideal Observer Efficiency Loss Breakdown (Double-Pass + CI + CBW)</h4>
+                <canvas id="canvasEfficiencyDecomp" width="560" height="250"></canvas>
+            </div>
+        </div>
+
+        <!-- Full Multi-Model Comparison Table -->
+        <h4 style="font-size: 14px; color: var(--accent); margin: 18px 0 10px 0; text-transform: uppercase;">
+            Complete Cross-Model Psychophysical &amp; Ideal Observer Efficiency Matrix
+        </h4>
+        <div class="table-wrap">
+            <table class="bench-table" id="summaryBenchTable">
+                <thead>
+                    <tr>
+                        <th>Observer / Architecture</th>
+                        <th>Category &amp; Readout</th>
+                        <th>&eta;<sub>total</sub> (Ideal)</th>
+                        <th>&eta;<sub>template</sub> (CI r&sup2;)</th>
+                        <th>&eta;<sub>noise</sub> (Double-Pass)</th>
+                        <th>&eta;<sub>bandwidth</sub></th>
+                        <th>N<sub>eq</sub> (deg&sup2;)</th>
+                        <th>PTM &gamma; / A<sub>m</sub></th>
+                        <th>Patch PBDI</th>
+                        <th>CBW (oct)</th>
+                        <th>TvC Dip (dB)</th>
+                        <th>Weber Slope</th>
+                        <th>Human Match</th>
+                    </tr>
+                </thead>
+                <tbody id="summaryTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Interactive Live 2IFC Stimulus & Model Response Sandbox -->
+    <div class="section-card">
+        <h2>Interactive 2IFC Trial Generator &amp; Live Local VLM (`llava:latest`) Verification</h2>
+        <p>
+            Inspect the exact 2IFC target + pedestal + notched/white noise stimulus pairs presented to the models,
+            compare instantaneous decision variables R(I<sub>target</sub>) &minus; R(I<sub>null</sub>) across all 8 architectures,
+            and view empirical 2AFC token verification probes from the local Ollama VLM.
+        </p>
+
+        <div class="sandbox-controls">
+            <div class="slider-item">
+                <label>Increment Contrast (&Delta;C): <strong id="lblSimInc">0.080</strong></label>
+                <input type="range" id="sldSimInc" min="0.005" max="0.50" step="0.005" value="0.080" oninput="updateLiveSandbox()">
+            </div>
+            <div class="slider-item">
+                <label>Pedestal Contrast (C<sub>ped</sub>): <strong id="lblSimPed">0.020</strong></label>
+                <input type="range" id="sldSimPed" min="0.000" max="0.35" step="0.005" value="0.020" oninput="updateLiveSandbox()">
+            </div>
+            <div class="slider-item">
+                <label>External Noise (N<sub>ext</sub>): <strong id="lblSimNoise">1.6e-4</strong></label>
+                <input type="range" id="sldSimNoise" min="0.0" max="0.0006" step="0.00002" value="0.00016" oninput="updateLiveSandbox()">
+            </div>
+            <div class="slider-item">
+                <label>Notch Width (&Delta;f oct): <strong id="lblSimNotch">0.00 oct</strong></label>
+                <input type="range" id="sldSimNotch" min="0.0" max="2.5" step="0.25" value="0.0" oninput="updateLiveSandbox()">
+            </div>
+            <button class="btn-action btn-primary" onclick="updateLiveSandbox(true)">🎲 Resample Noise Field</button>
+        </div>
+
+        <div class="diag-columns">
+            <div class="diag-box" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <h4 style="color: var(--amber);">2AFC Stimulus Pair Sent to Vision Models (Interval 1 vs Interval 2)</h4>
+                <canvas id="canvasLivePair" width="460" height="210"></canvas>
+                <div style="font-size: 12px; color: #9a9ab0; margin-top: 8px;" id="liveStimCaption">
+                    Interval 1 (Cyan): Pedestal + Increment + Noise | Interval 2 (Amber): Pedestal + Noise
+                </div>
+            </div>
+            <div class="diag-box">
+                <h4 style="color: var(--purple);">Live Ollama VLM (`llava:latest`) 2AFC Verification Telemetry</h4>
+                <div id="liveVlmStatusBox" style="font-size: 12.5px; color: #ccc; margin-bottom: 10px;"></div>
+                <div class="table-wrap">
+                    <table class="bench-table">
+                        <thead>
+                            <tr>
+                                <th>Condition</th>
+                                <th>Target Panel</th>
+                                <th>VLM Token Reply</th>
+                                <th>Result</th>
+                                <th>Latency</th>
+                            </tr>
+                        </thead>
+                        <tbody id="liveVlmTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="js/benchmark_data.js"></script>
+<script>
+    const MODEL_COLORS = {
+        "ideal_observer": "#00e676",
+        "foley_divisive_norm": "#00bcd4",
+        "ptm_lu_dosher": "#40c4ff",
+        "lam_human": "#80d8ff",
+        "v1_multiscale_bank": "#b388ff",
+        "convnet_backbone": "#ffb300",
+        "vit_patch_backbone": "#ff5252",
+        "local_vlm_llava": "#ff4081"
+    };
+
+    let benchData = window.MODEL_PSYCHOPHYSICS_BENCHMARK || null;
+    let primaryModelId = "vit_patch_backbone";
+    let activeOverlays = new Set([
+        "ideal_observer",
+        "foley_divisive_norm",
+        "v1_multiscale_bank",
+        "convnet_backbone",
+        "vit_patch_backbone",
+        "local_vlm_llava"
+    ]);
+
+    let tvnMode = "tvn";
+    let ciMode = "maps";
+    let cbwMode = "notch";
+    let tvcMode = "log";
+    let sandboxSeed = 1;
+
+    async function initApp() {
+        if (!benchData) {
+            try {
+                const resp = await fetch("benchmark_results.json");
+                benchData = await resp.json();
+            } catch (e) {
+                console.error("Could not load benchmark_results.json:", e);
+                return;
+            }
+        }
+
+        const sel = document.getElementById("primaryModelSelect");
+        sel.innerHTML = "";
+        const models = benchData.models;
+        Object.keys(models).forEach(mid => {
+            const opt = document.createElement("option");
+            opt.value = mid;
+            opt.textContent = `${models[mid].name}`;
+            if (mid === primaryModelId) opt.selected = true;
+            sel.appendChild(opt);
+        });
+
+        renderOverlayPills();
+        renderSummaryTable();
+        renderLiveVlmTelemetry();
+        refreshAllViews();
+        updateLiveSandbox();
+    }
+
+    function renderOverlayPills() {
+        const container = document.getElementById("overlayPillsContainer");
+        container.innerHTML = "";
+        Object.keys(benchData.models).forEach(mid => {
+            const m = benchData.models[mid];
+            const pill = document.createElement("div");
+            pill.className = "model-pill" + (activeOverlays.has(mid) ? " active" : "");
+            const color = MODEL_COLORS[mid] || "#ccc";
+            pill.innerHTML = `<span class="dot" style="background:${color}"></span>${m.name.split(" (")[0]}`;
+            pill.onclick = () => {
+                if (activeOverlays.has(mid) && activeOverlays.size > 1) {
+                    activeOverlays.delete(mid);
+                } else {
+                    activeOverlays.add(mid);
+                }
+                renderOverlayPills();
+                refreshAllViews();
+            };
+            container.appendChild(pill);
+        });
+    }
+
+    function onPrimaryModelChange() {
+        primaryModelId = document.getElementById("primaryModelSelect").value;
+        activeOverlays.add(primaryModelId);
+        renderOverlayPills();
+        refreshAllViews();
+        renderSummaryTable();
+    }
+
+    function setTvnMode(m) {
+        tvnMode = m;
+        document.getElementById("btnTvnCurve").classList.toggle("active", m === "tvn");
+        document.getElementById("btnTvnDual").classList.toggle("active", m === "dual");
+        document.getElementById("btnTvnRatio").classList.toggle("active", m === "ratio");
+        drawEquivalentNoiseCanvas();
+    }
+
+    function setCiMode(m) {
+        ciMode = m;
+        document.getElementById("btnCiMaps").classList.toggle("active", m === "maps");
+        document.getElementById("btnCiProfile").classList.toggle("active", m === "profile");
+        drawClassificationImageCanvas();
+    }
+
+    function setCbwMode(m) {
+        cbwMode = m;
+        document.getElementById("btnCbwNotch").classList.toggle("active", m === "notch");
+        document.getElementById("btnCbwFilter").classList.toggle("active", m === "filter");
+        drawCriticalBandwidthCanvas();
+    }
+
+    function setTvcMode(m) {
+        tvcMode = m;
+        document.getElementById("btnTvcLog").classList.toggle("active", m === "log");
+        document.getElementById("btnTvcNorm").classList.toggle("active", m === "norm");
+        drawTvcDipperCanvas();
+    }
+
+    function refreshAllViews() {
+        const m = benchData.models[primaryModelId];
+        if (!m) return;
+
+        document.getElementById("readoutBadge").textContent = `Readout: ${m.readout_mode}`;
+        document.getElementById("modelDescText").textContent = m.description;
+
+        const ch = m.characterization;
+        const eq = m.equivalent_noise;
+        const ci = m.classification_image;
+        const cbw = m.critical_bandwidth;
+        const tvc = m.tvc_dipper;
+
+        document.getElementById("kpiEtaTotal").textContent = `${(ch.eta_total_vs_ideal * 100).toFixed(1)}%`;
+        document.getElementById("kpiEtaSub").textContent = `High-noise LAM η = ${(ch.eta_high_noise_lam * 100).toFixed(1)}%`;
+
+        document.getElementById("kpiEtaTemplate").textContent = `${(ch.eta_template_sampling * 100).toFixed(1)}%`;
+        document.getElementById("kpiPbdiSub").textContent = `Patch Grid Index PBDI = ${ci.patch_boundary_discontinuity_index.toFixed(2)}`;
+
+        document.getElementById("kpiNeq").textContent = eq.lam_fit.n_eq_deg2 === 0 ? "0.0 (Ideal)" : eq.lam_fit.n_eq_deg2.toExponential(2);
+        document.getElementById("kpiDoublePassSub").textContent =
+            `Double-pass P(agree)=${(eq.double_pass.p_agree * 100).toFixed(1)}%, σ_int/σ_ext=${eq.double_pass.sigma_int_to_ext_ratio.toFixed(2)}`;
+
+        document.getElementById("kpiCbw").textContent = `${cbw.critical_bandwidth_octaves.toFixed(2)} oct`;
+        document.getElementById("kpiCbwSub").textContent = `Spectral efficiency η_bw = ${(cbw.eta_bandwidth * 100).toFixed(1)}%`;
+
+        document.getElementById("kpiDipper").textContent = tvc.exhibits_dipper_facilitation
+            ? `${tvc.dip_facilitation_db.toFixed(2)} dB Dip`
+            : `No Dip (${tvc.dip_facilitation_db.toFixed(2)} dB)`;
+        document.getElementById("kpiWeberSub").textContent = `Weber slope = ${tvc.high_contrast_weber_slope.toFixed(2)} (p=${tvc.foley_fit.p_excitatory}, q=${tvc.foley_fit.q_inhibitory})`;
+
+        document.getElementById("kpiHumanScore").textContent = `${ch.human_psychophysics_alignment_pct.toFixed(1)}%`;
+        document.getElementById("kpiDisagreeCount").textContent = `${ch.disagreements_and_mechanisms.length} Mechanistic Divergences Detected`;
+
+        // Footers
+        document.getElementById("eqFitSummary").innerHTML =
+            `N<sub>eq</sub>=${eq.lam_fit.n_eq_deg2.toExponential(2)} | PTM &gamma;=${eq.ptm_fit.gamma_transducer.toFixed(2)}, A<sub>m</sub>=${eq.ptm_fit.multiplicative_noise_Am.toFixed(2)}`;
+        document.getElementById("ciFitSummary").innerHTML =
+            `&eta;<sub>template</sub>=${(ci.eta_template * 100).toFixed(1)}% | Patch PBDI=${ci.patch_boundary_discontinuity_index.toFixed(2)}`;
+        document.getElementById("cbwFitSummary").innerHTML =
+            `CBW=${cbw.critical_bandwidth_octaves.toFixed(2)} oct (Ideal=0.58, V1=1.25) | &eta;<sub>bw</sub>=${(cbw.eta_bandwidth * 100).toFixed(1)}%`;
+        document.getElementById("tvcFitSummary").innerHTML =
+            `Dip=${tvc.dip_facilitation_db.toFixed(2)} dB | p=${tvc.foley_fit.p_excitatory.toFixed(2)}, q=${tvc.foley_fit.q_inhibitory.toFixed(2)} | Weber=${tvc.high_contrast_weber_slope.toFixed(2)}`;
+
+        renderDiagnostics(ch);
+        drawEquivalentNoiseCanvas();
+        drawClassificationImageCanvas();
+        drawCriticalBandwidthCanvas();
+        drawTvcDipperCanvas();
+        drawEfficiencyDecompCanvas();
+    }
+
+    function renderDiagnostics(ch) {
+        const agBox = document.getElementById("agreementsContainer");
+        agBox.innerHTML = "";
+        if (ch.agreements_with_canonical.length === 0) {
+            agBox.innerHTML = `<div class="diag-item" style="background:rgba(255,255,255,0.04); color:#999;">No paradigms within canonical biological bounds.</div>`;
+        } else {
+            ch.agreements_with_canonical.forEach(txt => {
+                const d = document.createElement("div");
+                d.className = "diag-item diag-agree";
+                d.textContent = txt;
+                agBox.appendChild(d);
+            });
+        }
+
+        const disBox = document.getElementById("disagreementsContainer");
+        disBox.innerHTML = "";
+        if (ch.disagreements_and_mechanisms.length === 0) {
+            disBox.innerHTML = `<div class="diag-item diag-agree">Full agreement across all 4 psychophysical paradigms with canonical human cortical models!</div>`;
+        } else {
+            ch.disagreements_and_mechanisms.forEach(item => {
+                const d = document.createElement("div");
+                d.className = "diag-item diag-disagree";
+                d.innerHTML = `<strong>[${item.paradigm}] ${item.type}:</strong><br>${item.mechanism}`;
+                disBox.appendChild(d);
+            });
+        }
+    }
+
+    // --- CANVAS 1: EQUIVALENT NOISE (TvN) ---
+    function drawEquivalentNoiseCanvas() {
+        const canvas = document.getElementById("canvasEqNoise");
+        const ctx = canvas.getContext("2d");
+        const w = canvas.width, h = canvas.height;
+        ctx.fillStyle = "#09090e";
+        ctx.fillRect(0, 0, w, h);
+
+        const padL = 62, padR = 24, padT = 24, padB = 42;
+        const pw = w - padL - padR, ph = h - padT - padB;
+
+        const nLevels = benchData.models[primaryModelId].equivalent_noise.n_ext_levels_deg2;
+        // Map N_ext index or log10(N_ext + 2e-6)
+        const xVals = nLevels.map(n => Math.log10(Math.max(n, 2e-6)));
+        const xMin = Math.min(...xVals), xMax = Math.max(...xVals);
+
+        // Grid
+        ctx.strokeStyle = "rgba(255,255,255,0.08)";
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= 4; i++) {
+            const y = padT + (i / 4) * ph;
+            ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(w - padR, y); ctx.stroke();
+        }
+
+        if (tvnMode === "ratio") {
+            // Plot C_th(d'=2) / C_th(d'=1) across external noise
+            const yMin = 1.0, yMax = 2.4;
+            // Reference line at 2.0 (Linear LAM / Ideal Observer prediction)
+            const yRef = padT + ph - ((2.0 - yMin) / (yMax - yMin)) * ph;
+            ctx.strokeStyle = "rgba(0, 230, 118, 0.35)";
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath(); ctx.moveTo(padL, yRef); ctx.lineTo(w - padR, yRef); ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = "#00e676";
+            ctx.font = "11px sans-serif";
+            ctx.fillText("Linear Transducer Prediction (Ratio = 2.0)", padL + 8, yRef - 6);
+
+            activeOverlays.forEach(mid => {
+                const m = benchData.models[mid];
+                const ratios = m.equivalent_noise.criterion_ratios_d2_over_d1;
+                const isPrimary = (mid === primaryModelId);
+                ctx.strokeStyle = MODEL_COLORS[mid] || "#fff";
+                ctx.lineWidth = isPrimary ? 3.2 : 1.6;
+                ctx.beginPath();
+                ratios.forEach((r, idx) => {
+                    const px = padL + ((xVals[idx] - xMin) / (xMax - xMin)) * pw;
+                    const py = padT + ph - ((Math.min(yMax, Math.max(yMin, r)) - yMin) / (yMax - yMin)) * ph;
+                    if (idx === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                });
+                ctx.stroke();
+            });
+
+            ctx.fillStyle = "#aaa";
+            ctx.font = "11px sans-serif";
+            ctx.fillText("Ratio C(d'=2)/C(d'=1)", 6, padT + 12);
+        } else {
+            const logYMin = -2.3, logYMax = 0.05;
+            // Y-axis labels
+            ctx.fillStyle = "#888";
+            ctx.font = "11px monospace";
+            [-2.0, -1.5, -1.0, -0.5, 0.0].forEach(ly => {
+                const py = padT + ph - ((ly - logYMin) / (logYMax - logYMin)) * ph;
+                ctx.fillText((Math.pow(10, ly) * 100).toFixed(1) + "%", 6, py + 4);
+            });
+
+            const modelsToPlot = tvnMode === "dual" ? [primaryModelId, "ideal_observer"] : Array.from(activeOverlays);
+            modelsToPlot.forEach(mid => {
+                const m = benchData.models[mid];
+                if (!m) return;
+                const c1 = m.equivalent_noise.c_th_dprime_1;
+                const isPrimary = (mid === primaryModelId);
+                ctx.strokeStyle = MODEL_COLORS[mid] || "#fff";
+                ctx.lineWidth = isPrimary ? 3.2 : 1.7;
+                ctx.beginPath();
+                c1.forEach((c, idx) => {
+                    const px = padL + ((xVals[idx] - xMin) / (xMax - xMin)) * pw;
+                    const ly = Math.log10(Math.max(c, 1e-3));
+                    const py = padT + ph - ((ly - logYMin) / (logYMax - logYMin)) * ph;
+                    if (idx === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                });
+                ctx.stroke();
+
+                if (tvnMode === "dual") {
+                    const c2 = m.equivalent_noise.c_th_dprime_2;
+                    ctx.setLineDash([5, 4]);
+                    ctx.beginPath();
+                    c2.forEach((c, idx) => {
+                        const px = padL + ((xVals[idx] - xMin) / (xMax - xMin)) * pw;
+                        const ly = Math.log10(Math.max(c, 1e-3));
+                        const py = padT + ph - ((ly - logYMin) / (logYMax - logYMin)) * ph;
+                        if (idx === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                    });
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+            });
+        }
+
+        // X-axis labels
+        ctx.fillStyle = "#888";
+        ctx.font = "11px monospace";
+        nLevels.forEach((n, idx) => {
+            if (idx % 2 === 0 || idx === nLevels.length - 1) {
+                const px = padL + ((xVals[idx] - xMin) / (xMax - xMin)) * pw;
+                const lbl = n === 0 ? "0 (Quiet)" : n.toExponential(0);
+                ctx.fillText(lbl, px - 18, h - 12);
+            }
+        });
+    }
+
+    // --- CANVAS 2: CLASSIFICATION IMAGES ---
+    function drawClassificationImageCanvas() {
+        const canvas = document.getElementById("canvasClassImage");
+        const ctx = canvas.getContext("2d");
+        const w = canvas.width, h = canvas.height;
+        ctx.fillStyle = "#09090e";
+        ctx.fillRect(0, 0, w, h);
+
+        const m = benchData.models[primaryModelId];
+        const ci = m.classification_image;
+
+        if (ciMode === "maps") {
+            const maps = [
+                { title: "Ideal Template w_ideal", data: ci.ideal_map_32x32, scale: 1.0 },
+                { title: `Empirical CI w_hat (${m.name.split(" (")[0]})`, data: ci.ci_map_32x32, scale: 1.0 },
+                { title: "Disagreement Map (w_hat - w_ideal)", data: ci.residual_map_32x32, scale: 0.75 }
+            ];
+
+            const boxSize = 152;
+            const startX = 24;
+            const gap = 36;
+            const topY = 46;
+
+            maps.forEach((mp, idx) => {
+                const bx = startX + idx * (boxSize + gap);
+                ctx.fillStyle = "#ccc";
+                ctx.font = "bold 11.5px sans-serif";
+                ctx.fillText(mp.title, bx, topY - 10);
+
+                const grid = mp.data;
+                const n = grid.length;
+                const cell = boxSize / n;
+
+                for (let r = 0; r < n; r++) {
+                    for (let c = 0; c < n; c++) {
+                        const v = grid[r][c] / mp.scale;
+                        const clamped = Math.max(-1, Math.min(1, v));
+                        let red, green, blue;
+                        if (idx === 2) {
+                            // Diverging cyan-black-red colormap for residual disagreement
+                            if (clamped >= 0) {
+                                red = Math.round(255 * clamped);
+                                green = Math.round(60 * clamped);
+                                blue = Math.round(80 * clamped);
+                            } else {
+                                red = 0;
+                                green = Math.round(190 * (-clamped));
+                                blue = Math.round(255 * (-clamped));
+                            }
+                        } else {
+                            const lum = Math.round(127.5 * (1.0 + clamped));
+                            red = lum; green = lum; blue = lum;
+                        }
+                        ctx.fillStyle = `rgb(${red},${green},${blue})`;
+                        ctx.fillRect(bx + c * cell, topY + r * cell, Math.ceil(cell), Math.ceil(cell));
+                    }
+                }
+                ctx.strokeStyle = "#33334d";
+                ctx.lineWidth = 1.5;
+                ctx.strokeRect(bx, topY, boxSize, boxSize);
+            });
+
+            ctx.fillStyle = "#9a9ab0";
+            ctx.font = "12px sans-serif";
+            ctx.fillText(
+                `Template Correlation r² = ${(ci.eta_template * 100).toFixed(1)}% | 8x8 Patch Boundary Discontinuity (PBDI) = ${ci.patch_boundary_discontinuity_index.toFixed(2)}`,
+                24, h - 18
+            );
+        } else {
+            // 1D Horizontal cross-section profile
+            const padL = 50, padR = 24, padT = 28, padB = 38;
+            const pw = w - padL - padR, ph = h - padT - padB;
+            const midY = padT + ph / 2;
+
+            ctx.strokeStyle = "rgba(255,255,255,0.12)";
+            ctx.beginPath(); ctx.moveTo(padL, midY); ctx.lineTo(w - padR, midY); ctx.stroke();
+
+            // Plot Ideal 1D profile
+            const pIdeal = ci.profile_1d_ideal;
+            ctx.strokeStyle = "#00e676";
+            ctx.lineWidth = 2.0;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            pIdeal.forEach((v, i) => {
+                const px = padL + (i / (pIdeal.length - 1)) * pw;
+                const py = midY - v * (ph * 0.44);
+                if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            });
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Plot Primary Model 1D profile
+            const pMod = ci.profile_1d_model;
+            ctx.strokeStyle = MODEL_COLORS[primaryModelId] || "#00bcd4";
+            ctx.lineWidth = 3.0;
+            ctx.beginPath();
+            pMod.forEach((v, i) => {
+                const px = padL + (i / (pMod.length - 1)) * pw;
+                const py = midY - v * (ph * 0.44);
+                if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            });
+            ctx.stroke();
+
+            ctx.fillStyle = "#00e676";
+            ctx.font = "12px sans-serif";
+            ctx.fillText("--- Ideal Observer Template S(x, 0)", padL + 10, padT + 14);
+            ctx.fillStyle = MODEL_COLORS[primaryModelId] || "#00bcd4";
+            ctx.fillText(`─── ${m.name} Empirical Template w_hat(x, 0)`, padL + 240, padT + 14);
+        }
+    }
+
+    // --- CANVAS 3: CRITICAL BANDWIDTH ---
+    function drawCriticalBandwidthCanvas() {
+        const canvas = document.getElementById("canvasCritBw");
+        const ctx = canvas.getContext("2d");
+        const w = canvas.width, h = canvas.height;
+        ctx.fillStyle = "#09090e";
+        ctx.fillRect(0, 0, w, h);
+
+        const padL = 58, padR = 24, padT = 24, padB = 42;
+        const pw = w - padL - padR, ph = h - padT - padB;
+
+        ctx.strokeStyle = "rgba(255,255,255,0.08)";
+        for (let i = 0; i <= 4; i++) {
+            const y = padT + (i / 4) * ph;
+            ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(w - padR, y); ctx.stroke();
+        }
+
+        if (cbwMode === "notch") {
+            const notches = benchData.models[primaryModelId].critical_bandwidth.notch_widths_octaves;
+            const xMax = 3.0;
+
+            activeOverlays.forEach(mid => {
+                const m = benchData.models[mid];
+                const nm = m.critical_bandwidth.normalized_masking_energy;
+                const isPrimary = (mid === primaryModelId);
+                ctx.strokeStyle = MODEL_COLORS[mid] || "#fff";
+                ctx.lineWidth = isPrimary ? 3.2 : 1.7;
+                ctx.beginPath();
+                nm.forEach((val, idx) => {
+                    const px = padL + (notches[idx] / xMax) * pw;
+                    const py = padT + ph - val * ph;
+                    if (idx === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                });
+                ctx.stroke();
+            });
+
+            // 50% Half-power CBW line
+            const yHalf = padT + ph * 0.5;
+            ctx.strokeStyle = "rgba(255, 179, 0, 0.35)";
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath(); ctx.moveTo(padL, yHalf); ctx.lineTo(w - padR, yHalf); ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = "#ffb300";
+            ctx.font = "11px sans-serif";
+            ctx.fillText("50% Masking Energy (Critical Bandwidth FWHM)", padL + 140, yHalf - 6);
+
+            ctx.fillStyle = "#888";
+            ctx.font = "11px monospace";
+            notches.forEach(nw => {
+                const px = padL + (nw / xMax) * pw;
+                ctx.fillText(nw.toFixed(1) + " oct", px - 14, h - 12);
+            });
+        } else {
+            // Reconstructed Channel Filter |H(f)|^2
+            const freqs = benchData.models[primaryModelId].critical_bandwidth.freq_axis_cpd;
+            const logF = freqs.map(f => Math.log2(f));
+            const lfMin = Math.min(...logF), lfMax = Math.max(...logF);
+
+            activeOverlays.forEach(mid => {
+                const m = benchData.models[mid];
+                const H = m.critical_bandwidth.reconstructed_filter_H;
+                const isPrimary = (mid === primaryModelId);
+                ctx.strokeStyle = MODEL_COLORS[mid] || "#fff";
+                ctx.lineWidth = isPrimary ? 3.2 : 1.7;
+                ctx.beginPath();
+                H.forEach((val, idx) => {
+                    const px = padL + ((logF[idx] - lfMin) / (lfMax - lfMin)) * pw;
+                    const py = padT + ph - val * ph;
+                    if (idx === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                });
+                ctx.stroke();
+            });
+
+            [1, 2, 4, 8, 14].forEach(f => {
+                const px = padL + ((Math.log2(f) - lfMin) / (lfMax - lfMin)) * pw;
+                ctx.fillStyle = f === 4 ? "#00e676" : "#888";
+                ctx.font = "11px monospace";
+                ctx.fillText(f + " cpd", px - 14, h - 12);
+            });
+        }
+    }
+
+    // --- CANVAS 4: TvC DIPPER FUNCTION ---
+    function drawTvcDipperCanvas() {
+        const canvas = document.getElementById("canvasTvcDipper");
+        const ctx = canvas.getContext("2d");
+        const w = canvas.width, h = canvas.height;
+        ctx.fillStyle = "#09090e";
+        ctx.fillRect(0, 0, w, h);
+
+        const padL = 62, padR = 24, padT = 24, padB = 42;
+        const pw = w - padL - padR, ph = h - padT - padB;
+
+        const peds = benchData.models[primaryModelId].tvc_dipper.pedestal_contrasts;
+        const xLogs = peds.map(p => Math.log10(Math.max(p, 0.0025)));
+        const xMin = Math.min(...xLogs), xMax = Math.max(...xLogs);
+
+        ctx.strokeStyle = "rgba(255,255,255,0.08)";
+        for (let i = 0; i <= 4; i++) {
+            const y = padT + (i / 4) * ph;
+            ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(w - padR, y); ctx.stroke();
+        }
+
+        if (tvcMode === "norm") {
+            // Plot normalized threshold Delta_C / C_0 (Values < 1.0 indicate Dipper Facilitation!)
+            const yMin = 0.4, yMax = 3.2;
+            const yOne = padT + ph - ((1.0 - yMin) / (yMax - yMin)) * ph;
+            ctx.strokeStyle = "rgba(255,255,255,0.3)";
+            ctx.setLineDash([5, 4]);
+            ctx.beginPath(); ctx.moveTo(padL, yOne); ctx.lineTo(w - padR, yOne); ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = "#00e676";
+            ctx.font = "11px sans-serif";
+            ctx.fillText("Facilitation Zone (ΔC / C0 < 1.0 = Dipper Present)", padL + 12, yOne + 16);
+
+            activeOverlays.forEach(mid => {
+                const m = benchData.models[mid];
+                const dcs = m.tvc_dipper.increment_thresholds_delta_c;
+                const c0 = m.tvc_dipper.unmasked_threshold_c0;
+                const isPrimary = (mid === primaryModelId);
+                ctx.strokeStyle = MODEL_COLORS[mid] || "#fff";
+                ctx.lineWidth = isPrimary ? 3.2 : 1.7;
+                ctx.beginPath();
+                dcs.forEach((dc, idx) => {
+                    const ratio = Math.min(yMax, Math.max(yMin, dc / Math.max(c0, 1e-5)));
+                    const px = padL + ((xLogs[idx] - xMin) / (xMax - xMin)) * pw;
+                    const py = padT + ph - ((ratio - yMin) / (yMax - yMin)) * ph;
+                    if (idx === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                });
+                ctx.stroke();
+            });
+        } else {
+            const logYMin = -2.35, logYMax = -0.35;
+            ctx.fillStyle = "#888";
+            ctx.font = "11px monospace";
+            [-2.0, -1.5, -1.0, -0.5].forEach(ly => {
+                const py = padT + ph - ((ly - logYMin) / (logYMax - logYMin)) * ph;
+                ctx.fillText((Math.pow(10, ly) * 100).toFixed(1) + "%", 6, py + 4);
+            });
+
+            activeOverlays.forEach(mid => {
+                const m = benchData.models[mid];
+                const dcs = m.tvc_dipper.increment_thresholds_delta_c;
+                const isPrimary = (mid === primaryModelId);
+                ctx.strokeStyle = MODEL_COLORS[mid] || "#fff";
+                ctx.lineWidth = isPrimary ? 3.2 : 1.7;
+                ctx.beginPath();
+                dcs.forEach((dc, idx) => {
+                    const px = padL + ((xLogs[idx] - xMin) / (xMax - xMin)) * pw;
+                    const ly = Math.log10(Math.max(dc, 10 ** logYMin));
+                    const py = padT + ph - ((ly - logYMin) / (logYMax - logYMin)) * ph;
+                    if (idx === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                });
+                ctx.stroke();
+            });
+        }
+
+        ctx.fillStyle = "#888";
+        ctx.font = "11px monospace";
+        peds.forEach((p, idx) => {
+            if (idx % 2 === 0) {
+                const px = padL + ((xLogs[idx] - xMin) / (xMax - xMin)) * pw;
+                const lbl = p === 0 ? "0%" : (p * 100).toFixed(1) + "%";
+                ctx.fillText(lbl, px - 14, h - 12);
+            }
+        });
+    }
+
+    // --- CANVAS 5: EFFICIENCY DECOMPOSITION BAR CHART ---
+    function drawEfficiencyDecompCanvas() {
+        const canvas = document.getElementById("canvasEfficiencyDecomp");
+        const ctx = canvas.getContext("2d");
+        const w = canvas.width, h = canvas.height;
+        ctx.fillStyle = "#09090e";
+        ctx.fillRect(0, 0, w, h);
+
+        const ch = benchData.models[primaryModelId].characterization;
+        const bars = [
+            { label: "Total Efficiency (η_total)", val: ch.eta_total_vs_ideal, color: "#00bcd4" },
+            { label: "Template Match (η_template)", val: ch.eta_template_sampling, color: "#00e676" },
+            { label: "Noise Consistency (η_noise)", val: ch.eta_noise_consistency, color: "#ffb300" },
+            { label: "Spectral Tuning (η_bandwidth)", val: ch.eta_spectral_bandwidth, color: "#b388ff" },
+            { label: "Human Bio-Alignment Score", val: ch.human_psychophysics_alignment_pct / 100.0, color: "#ff4081" }
+        ];
+
+        const padL = 185, padR = 55, topY = 22, rowH = 42;
+        const maxBarW = w - padL - padR;
+
+        bars.forEach((b, i) => {
+            const y = topY + i * rowH;
+            ctx.fillStyle = "#ccc";
+            ctx.font = "600 12px sans-serif";
+            ctx.fillText(b.label, 12, y + 16);
+
+            ctx.fillStyle = "#1a1a28";
+            ctx.fillRect(padL, y + 3, maxBarW, 20);
+
+            const bw = Math.max(3, Math.min(1.0, b.val) * maxBarW);
+            ctx.fillStyle = b.color;
+            ctx.fillRect(padL, y + 3, bw, 20);
+
+            ctx.fillStyle = "#fff";
+            ctx.font = "bold 12px monospace";
+            ctx.fillText((b.val * 100).toFixed(1) + "%", padL + bw + 8, y + 17);
+        });
+    }
+
+    function renderSummaryTable() {
+        const tbody = document.getElementById("summaryTableBody");
+        tbody.innerHTML = "";
+        benchData.summary_table.forEach(row => {
+            const tr = document.createElement("tr");
+            if (row.model_id === primaryModelId) tr.className = "selected-row";
+            tr.style.cursor = "pointer";
+            tr.onclick = () => {
+                document.getElementById("primaryModelSelect").value = row.model_id;
+                onPrimaryModelChange();
+            };
+
+            const color = MODEL_COLORS[row.model_id] || "#fff";
+            const dipBadge = row.tvc_has_dipper
+                ? `<span class="pill-badge pill-green">${row.tvc_dip_depth_db.toFixed(2)} dB</span>`
+                : `<span class="pill-badge pill-red">None (${row.tvc_dip_depth_db.toFixed(2)} dB)</span>`;
+
+            const pbdiBadge = row.pbdi_patch_artifact > 1.22
+                ? `<span class="pill-badge pill-red">${row.pbdi_patch_artifact.toFixed(2)} (Grid)</span>`
+                : `<span class="pill-badge pill-green">${row.pbdi_patch_artifact.toFixed(2)}</span>`;
+
+            tr.innerHTML = `
+                <td><span class="dot" style="background:${color}; margin-right:7px;"></span><strong>${row.name}</strong></td>
+                <td style="color:#9a9ab0;">${row.category}</td>
+                <td style="color:var(--accent); font-weight:700;">${row.eta_total_pct.toFixed(1)}%</td>
+                <td>${row.eta_template_pct.toFixed(1)}%</td>
+                <td>${row.eta_noise_consistency_pct.toFixed(1)}%</td>
+                <td>${row.eta_bandwidth_pct.toFixed(1)}%</td>
+                <td style="font-family:monospace;">${row.n_eq_deg2 === 0 ? "0.0" : row.n_eq_deg2.toExponential(2)}</td>
+                <td>&gamma;=${row.ptm_gamma.toFixed(2)} / A<sub>m</sub>=${row.ptm_Am.toFixed(2)}</td>
+                <td>${pbdiBadge}</td>
+                <td>${row.critical_bandwidth_oct.toFixed(2)} oct</td>
+                <td>${dipBadge}</td>
+                <td>${row.tvc_weber_slope.toFixed(2)}</td>
+                <td><strong>${row.human_alignment_score_pct.toFixed(1)}%</strong></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function renderLiveVlmTelemetry() {
+        const vlm = benchData.live_ollama_vlm_verification;
+        const statusBox = document.getElementById("liveVlmStatusBox");
+        const tbody = document.getElementById("liveVlmTableBody");
+        tbody.innerHTML = "";
+
+        if (!vlm || !vlm.probes || vlm.probes.length === 0) {
+            statusBox.textContent = "No live Ollama VLM probes recorded in current bundle.";
+            return;
+        }
+
+        statusBox.innerHTML = `
+            Ollama Server Reachable: <strong style="color:${vlm.ollama_reachable ? 'var(--green)' : 'var(--amber)'}">${vlm.ollama_reachable ? 'YES (' + vlm.model + ')' : 'Offline'}</strong>
+            | Empirical 2AFC Accuracy: <strong>${vlm.accuracy !== null ? (vlm.accuracy * 100).toFixed(1) + '%' : 'N/A'}</strong> (${vlm.n_probes} live trials)
+        `;
+
+        vlm.probes.forEach(p => {
+            const tr = document.createElement("tr");
+            const badge = p.live_success
+                ? (p.correct ? `<span class="pill-badge pill-green">Correct</span>` : `<span class="pill-badge pill-red">Error / Guess</span>`)
+                : `<span class="pill-badge pill-amber">Timeout</span>`;
+            tr.innerHTML = `
+                <td>${p.condition}</td>
+                <td>Panel ${p.target_side}</td>
+                <td style="font-family:monospace; color:#fff;">"${p.raw_response || p.error || ''}"</td>
+                <td>${badge}</td>
+                <td>${p.eval_duration_ms ? p.eval_duration_ms + ' ms' : '--'}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function updateLiveSandbox(resample = false) {
+        if (resample) sandboxSeed += 17;
+        const inc = parseFloat(document.getElementById("sldSimInc").value);
+        const ped = parseFloat(document.getElementById("sldSimPed").value);
+        const noise = parseFloat(document.getElementById("sldSimNoise").value);
+        const notch = parseFloat(document.getElementById("sldSimNotch").value);
+
+        document.getElementById("lblSimInc").textContent = (inc * 100).toFixed(1) + "%";
+        document.getElementById("lblSimPed").textContent = (ped * 100).toFixed(1) + "%";
+        document.getElementById("lblSimNoise").textContent = noise.toExponential(1) + " deg²";
+        document.getElementById("lblSimNotch").textContent = notch.toFixed(2) + " oct";
+
+        const canvas = document.getElementById("canvasLivePair");
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#101018";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const sz = 160;
+        const sigmaPx = Math.sqrt(noise / ((1.0 / 32.0) ** 2)) * 0.45;
+        let rngState = sandboxSeed;
+        function randn() {
+            rngState = (rngState * 1664525 + 1013904223) % 4294967296;
+            const u1 = Math.max(1e-7, rngState / 4294967296);
+            rngState = (rngState * 1664525 + 1013904223) % 4294967296;
+            const u2 = rngState / 4294967296;
+            return Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+        }
+
+        function drawPatch(x0, y0, totalContrast, borderColor, label) {
+            const img = ctx.createImageData(sz, sz);
+            const half = sz / 2;
+            for (let y = 0; y < sz; y++) {
+                for (let x = 0; x < sz; x++) {
+                    const dx = (x - half) / 80.0;
+                    const dy = (y - half) / 80.0;
+                    const env = Math.exp(-(dx * dx + dy * dy) / (2 * 0.35 * 0.35));
+                    const car = Math.cos(2.0 * Math.PI * 4.0 * dx);
+                    const nVal = randn() * sigmaPx * Math.exp(-notch * 0.35);
+                    const cVal = totalContrast * env * car + nVal;
+                    const lum = Math.max(0, Math.min(255, Math.round(128 * (1.0 + cVal))));
+                    const idx = (y * sz + x) * 4;
+                    img.data[idx] = lum;
+                    img.data[idx + 1] = lum;
+                    img.data[idx + 2] = lum;
+                    img.data[idx + 3] = 255;
+                }
+            }
+            ctx.putImageData(img, x0, y0);
+            ctx.strokeStyle = borderColor;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x0 - 1, y0 - 1, sz + 2, sz + 2);
+            ctx.fillStyle = borderColor;
+            ctx.font = "bold 12px sans-serif";
+            ctx.fillText(label, x0 + 28, y0 - 6);
+        }
+
+        drawPatch(45, 32, ped + inc, "#00bcd4", "Panel 1: Pedestal + ΔC");
+        drawPatch(255, 32, ped, "#ffb300", "Panel 2: Pedestal Only");
+    }
+
+    function runLiveTrialSimulation() {
+        updateLiveSandbox(true);
+        refreshAllViews();
+    }
+
+    function exportCharacterizationCSV() {
+        if (!benchData || !benchData.summary_table) return;
+        const rows = benchData.summary_table;
+        const keys = Object.keys(rows[0]);
+        const csv = [
+            keys.join(","),
+            ...rows.map(r => keys.map(k => JSON.stringify(r[k])).join(","))
+        ].join("\n");
+        const blob = new Blob([csv], { type: "text/csv" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "vision_model_ideal_observer_characterization.csv";
+        a.click();
+    }
+
+    window.addEventListener("DOMContentLoaded", initApp);
+</script>
+</body>
+</html>
