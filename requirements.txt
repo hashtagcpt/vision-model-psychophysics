@@ -1,0 +1,7 @@
+# Vision Model Psychophysics Suite Requirements
+# Python 3.9+ compatible
+
+numpy>=1.24.0
+scipy>=1.10.0
+pillow>=10.0.0
+requests>=2.31.0
