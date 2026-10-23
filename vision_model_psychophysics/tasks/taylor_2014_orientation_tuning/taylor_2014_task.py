@@ -222,6 +222,8 @@ def evaluate_taylor_2014_suite(
             n_ext_deg2=n_ext_deg2,
             seed=seed + 20,
             human_template=human_ci_template,
+            default_domain="fourier",
+            has_orthogonal_suppression=has_suppression,
         )
 
         results[m_id] = {

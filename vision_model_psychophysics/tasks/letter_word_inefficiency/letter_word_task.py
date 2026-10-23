@@ -142,6 +142,14 @@ def evaluate_letter_word_inefficiency_suite(
     tmpl_word5 = render_word_contrast_patch("LIGHT", 1.0, width_px=64, height_px=64)
     cfg = StimulusConfig(size_px=64, px_per_deg=32.0)
 
+    # Human template: word strokes with foveal letter-by-letter bottleneck envelope (Pelli 2003)
+    n = 64
+    coords = (np.arange(n, dtype=np.float64) - (n - 1) / 2.0) / (n / 2.0)
+    x, y = np.meshgrid(coords, coords)
+    foveal_envelope = np.exp(-(x ** 2 + (y * 1.5) ** 2) / 0.35)
+    human_ci_template = tmpl_word5 * foveal_envelope
+    human_ci_template = human_ci_template / (np.max(np.abs(human_ci_template)) + 1e-12)
+
     for m_id, obs in observers.items():
         effs = [results[m_id]["efficiency_by_length_pct"][L] for L in word_lengths]
         slope, _ = np.polyfit(log_L, np.log10(np.maximum(0.1, effs)), 1)
@@ -155,6 +163,7 @@ def evaluate_letter_word_inefficiency_suite(
             n_trials=350,
             n_ext_deg2=n_ext_deg2,
             seed=seed + 5,
+            human_template=human_ci_template,
         )
 
     return {

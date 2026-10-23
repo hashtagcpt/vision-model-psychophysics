@@ -62,6 +62,16 @@ def evaluate_face_inversion_suite(
     tmpl_upright = make_synthetic_face(inverted=False)
     tmpl_inverted = make_synthetic_face(inverted=True)
 
+    # Human classification image template (Sekuler et al. 2004: strong eye-region dominance)
+    n = 64
+    coords = (np.arange(n, dtype=np.float64) - (n - 1) / 2.0) / (n / 2.0)
+    x, y = np.meshgrid(coords, coords)
+    eye_l = np.exp(-(((x + 0.25) / 0.12) ** 2 + ((y - 0.22) / 0.07) ** 2) * 18.0)
+    eye_r = np.exp(-(((x - 0.25) / 0.12) ** 2 + ((y - 0.22) / 0.07) ** 2) * 18.0)
+    mouth = np.exp(-((x / 0.26) ** 2 + ((y + 0.38) / 0.08) ** 2) * 20.0)
+    human_ci_template = -(1.8 * (eye_l + eye_r) + 0.45 * mouth)
+    human_ci_template = human_ci_template / (np.max(np.abs(human_ci_template)) + 1e-12)
+
     results: Dict[str, Any] = {}
 
     for m_id, obs in observers.items():
@@ -109,6 +119,7 @@ def evaluate_face_inversion_suite(
             n_trials=400,
             n_ext_deg2=n_ext_deg2,
             seed=seed + 20,
+            human_template=human_ci_template,
         )
 
         results[m_id] = {

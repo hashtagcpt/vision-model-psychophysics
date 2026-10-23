@@ -126,8 +126,10 @@ class BaseObserver(ABC):
         else:
             return int(rng.integers(0, 2)), 0.0
 
-    def get_spatial_template(self) -> np.ndarray:
+    def get_spatial_template(self, target_template: Optional[np.ndarray] = None) -> np.ndarray:
         """Returns the effective linear/first-order spatial weighting template w(x,y)."""
+        if target_template is not None:
+            return target_template.copy()
         return self.ideal_template.copy()
 
 
@@ -208,8 +210,20 @@ class LinearAmplifierObserver(BaseObserver):
         r = math.sqrt(max(0.01, min(0.999, self.eta_sampling)))
         return r * s_norm + math.sqrt(1.0 - r ** 2) * orth_norm
 
-    def get_spatial_template(self) -> np.ndarray:
-        return self.template.copy()
+    def get_spatial_template(self, target_template: Optional[np.ndarray] = None) -> np.ndarray:
+        if target_template is None:
+            return self.template.copy()
+        s = target_template.copy()
+        s_norm = s / (np.linalg.norm(s) + 1e-12)
+        rng = np.random.default_rng(len(s.flat))
+        raw_noise = rng.normal(0.0, 1.0, size=s.shape)
+        proj = np.sum(raw_noise * s_norm) * s_norm
+        orth = raw_noise - proj
+        orth_norm = orth / (np.linalg.norm(orth) + 1e-12)
+        r = math.sqrt(max(0.01, min(0.999, self.eta_sampling)))
+        sub = r * s_norm + math.sqrt(1.0 - r ** 2) * orth_norm
+        peak = np.max(np.abs(sub))
+        return sub / peak if peak > 1e-12 else sub
 
     def compute_decision_variable(
         self,
@@ -217,12 +231,15 @@ class LinearAmplifierObserver(BaseObserver):
         rng: np.random.Generator,
         reference_template: Optional[np.ndarray] = None,
     ) -> float:
-        c_sig = float(np.sum(contrast_patch * self.ideal_template) * self.cfg.pixel_area_deg2) / self.unit_energy
-        residual = contrast_patch - c_sig * self.ideal_template
+        target = self.ideal_template if reference_template is None else reference_template
+        tmpl = self.template if reference_template is None else self.get_spatial_template(reference_template)
+        u_e = float(np.sum(target ** 2) * self.cfg.pixel_area_deg2)
+        c_sig = float(np.sum(contrast_patch * target) * self.cfg.pixel_area_deg2) / max(u_e, 1e-12)
+        residual = contrast_patch - c_sig * target
         # Linear projection + 0.98-octave channel noise + additive internal noise
-        lin_proj = float(np.sum(contrast_patch * self.template) * self.cfg.pixel_area_deg2) / self.unit_energy
+        lin_proj = float(np.sum(contrast_patch * tmpl) * self.cfg.pixel_area_deg2) / max(u_e, 1e-12)
         ch_sd = self.compute_channel_noise_sd(residual) / math.sqrt(self.eta_sampling)
-        sigma_int = math.sqrt(self.n_eq_deg2 / max(self.eta_sampling * self.unit_energy, 1e-9))
+        sigma_int = math.sqrt(self.n_eq_deg2 / max(self.eta_sampling * u_e, 1e-9))
         return 0.35 * lin_proj + 0.65 * math.sqrt(self.eta_sampling) * c_sig + float(
             rng.normal(0.0, math.sqrt(sigma_int ** 2 + (0.85 * ch_sd) ** 2))
         )
@@ -274,8 +291,15 @@ class PerceptualTemplateObserver(BaseObserver):
         norm = math.sqrt(self.unit_energy / (float(np.sum(tmpl ** 2) * self.cfg.pixel_area_deg2) + 1e-12))
         return tmpl * norm
 
-    def get_spatial_template(self) -> np.ndarray:
-        return self.template.copy()
+    def get_spatial_template(self, target_template: Optional[np.ndarray] = None) -> np.ndarray:
+        if target_template is None:
+            return self.template.copy()
+        s = target_template.copy()
+        peak = np.max(np.abs(s)) + 1e-12
+        s_unit = s / peak
+        trans = np.sign(s_unit) * (np.abs(s_unit) ** (self.gamma / 1.5))
+        p = np.max(np.abs(trans))
+        return trans / p if p > 1e-12 else trans
 
     def compute_decision_variable(
         self,
@@ -283,9 +307,12 @@ class PerceptualTemplateObserver(BaseObserver):
         rng: np.random.Generator,
         reference_template: Optional[np.ndarray] = None,
     ) -> float:
-        c_sig = float(np.sum(contrast_patch * self.ideal_template) * self.cfg.pixel_area_deg2) / self.unit_energy
-        residual = contrast_patch - c_sig * self.ideal_template
-        lin_proj = float(np.sum(contrast_patch * self.template) * self.cfg.pixel_area_deg2) / self.unit_energy
+        target = self.ideal_template if reference_template is None else reference_template
+        tmpl = self.template if reference_template is None else self.get_spatial_template(reference_template)
+        u_e = float(np.sum(target ** 2) * self.cfg.pixel_area_deg2)
+        c_sig = float(np.sum(contrast_patch * target) * self.cfg.pixel_area_deg2) / max(u_e, 1e-12)
+        residual = contrast_patch - c_sig * target
+        lin_proj = float(np.sum(contrast_patch * tmpl) * self.cfg.pixel_area_deg2) / max(u_e, 1e-12)
         ch_sd = self.compute_channel_noise_sd(residual) * 1.15
 
         # Signal + external channel noise prior to transducer
@@ -293,7 +320,6 @@ class PerceptualTemplateObserver(BaseObserver):
         signal_out = math.copysign(abs(self.beta * c_in) ** self.gamma, c_in)
 
         # Total variance after nonlinear transducer (Lu & Dosher 1999 Eq. 4):
-        # Var_total = (1 + A_m) * (beta * ch_sd)^(2*gamma) + A_m * (beta * c_in)^(2*gamma) + A_a^2
         ext_trans_var = (1.0 + self.a_m) * ((self.beta * ch_sd) ** (2.0 * self.gamma))
         mult_sig_var = self.a_m * ((self.beta * abs(c_in)) ** (2.0 * self.gamma))
         add_var = self.a_a ** 2
@@ -340,8 +366,17 @@ class FoleyDivisiveNormObserver(BaseObserver):
         norm = math.sqrt(self.unit_energy / (float(np.sum(tmpl ** 2) * self.cfg.pixel_area_deg2) + 1e-12))
         return tmpl * norm
 
-    def get_spatial_template(self) -> np.ndarray:
-        return self.template.copy()
+    def get_spatial_template(self, target_template: Optional[np.ndarray] = None) -> np.ndarray:
+        if target_template is None:
+            return self.template.copy()
+        from scipy.ndimage import gaussian_filter
+        s = target_template.copy()
+        exc = s
+        inh = gaussian_filter(np.abs(s), sigma=2.0)
+        denom = (self.c50 ** self.q) + (inh ** self.q)
+        resp = np.sign(exc) * (np.abs(exc) ** self.p) / np.maximum(denom, 1e-12)
+        peak = np.max(np.abs(resp))
+        return resp / peak if peak > 1e-12 else resp
 
     def compute_decision_variable(
         self,
@@ -349,9 +384,12 @@ class FoleyDivisiveNormObserver(BaseObserver):
         rng: np.random.Generator,
         reference_template: Optional[np.ndarray] = None,
     ) -> float:
-        c_sig = float(np.sum(contrast_patch * self.ideal_template) * self.cfg.pixel_area_deg2) / self.unit_energy
-        residual = contrast_patch - c_sig * self.ideal_template
-        lin_proj = float(np.sum(contrast_patch * self.template) * self.cfg.pixel_area_deg2) / self.unit_energy
+        target = self.ideal_template if reference_template is None else reference_template
+        tmpl = self.template if reference_template is None else self.get_spatial_template(reference_template)
+        u_e = float(np.sum(target ** 2) * self.cfg.pixel_area_deg2)
+        c_sig = float(np.sum(contrast_patch * target) * self.cfg.pixel_area_deg2) / max(u_e, 1e-12)
+        residual = contrast_patch - c_sig * target
+        lin_proj = float(np.sum(contrast_patch * tmpl) * self.cfg.pixel_area_deg2) / max(u_e, 1e-12)
         c_exc = 0.30 * lin_proj + 0.70 * c_sig
         ch_sd = self.compute_channel_noise_sd(residual) * 1.12
 
@@ -410,10 +448,25 @@ class V1MultiscaleGaborObserver(BaseObserver):
                 w = overlap if abs(overlap) > 0.15 else 0.12 * math.exp(-abs(math.log2(sf / self.cfg.sf_cpd)))
                 self.weights.append(w)
 
-    def get_spatial_template(self) -> np.ndarray:
-        combined = np.zeros_like(self.ideal_template)
-        for f, w in zip(self.filters, self.weights):
-            combined += w * f
+    def get_spatial_template(self, target_template: Optional[np.ndarray] = None) -> np.ndarray:
+        if target_template is None:
+            combined = np.zeros_like(self.ideal_template)
+            for f, w in zip(self.filters, self.weights):
+                combined += w * f
+            peak = np.max(np.abs(combined))
+            return combined / peak if peak > 1e-12 else combined
+        from scipy.ndimage import zoom
+        s = target_template.copy()
+        s_norm = s / (np.linalg.norm(s) + 1e-12)
+        combined = np.zeros_like(s)
+        for f in self.filters:
+            f_use = f
+            if f.shape != s.shape:
+                scale = [s.shape[0] / f.shape[0], s.shape[1] / f.shape[1]]
+                f_use = zoom(f, scale, order=1)
+            f_norm = f_use / (np.linalg.norm(f_use) + 1e-12)
+            coeff = float(np.sum(s_norm * f_norm))
+            combined += coeff * f_norm
         peak = np.max(np.abs(combined))
         return combined / peak if peak > 1e-12 else combined
 
@@ -423,22 +476,38 @@ class V1MultiscaleGaborObserver(BaseObserver):
         rng: np.random.Generator,
         reference_template: Optional[np.ndarray] = None,
     ) -> float:
-        c_sig = float(np.sum(contrast_patch * self.ideal_template) * self.cfg.pixel_area_deg2) / self.unit_energy
-        residual = contrast_patch - c_sig * self.ideal_template
+        from scipy.ndimage import zoom
+        target = self.ideal_template if reference_template is None else reference_template
+        u_e = float(np.sum(target ** 2) * self.cfg.pixel_area_deg2)
+        c_sig = float(np.sum(contrast_patch * target) * self.cfg.pixel_area_deg2) / max(u_e, 1e-12)
+        residual = contrast_patch - c_sig * target
         ch_sd = self.compute_channel_noise_sd(residual) * 1.18
 
-        raw_acts = np.array(
-            [
-                float(np.sum(contrast_patch * f) * self.cfg.pixel_area_deg2) / self.unit_energy
-                for f in self.filters
-            ],
-            dtype=np.float64,
-        )
+        weights = self.weights
+        if reference_template is not None:
+            target_norm = target / (np.linalg.norm(target) + 1e-12)
+            weights = []
+            for f in self.filters:
+                f_use = f
+                if f.shape != target.shape:
+                    scale = [target.shape[0] / f.shape[0], target.shape[1] / f.shape[1]]
+                    f_use = zoom(f, scale, order=1)
+                weights.append(float(np.sum(target_norm * (f_use / (np.linalg.norm(f_use) + 1e-12)))))
+
+        raw_acts = []
+        for f in self.filters:
+            f_use = f
+            if f.shape != contrast_patch.shape:
+                scale = [contrast_patch.shape[0] / f.shape[0], contrast_patch.shape[1] / f.shape[1]]
+                f_use = zoom(f, scale, order=1)
+            raw_acts.append(float(np.sum(contrast_patch * f_use) * self.cfg.pixel_area_deg2) / max(u_e, 1e-12))
+        raw_acts_arr = np.array(raw_acts, dtype=np.float64)
+
         p, q, c50 = 2.35, 1.88, 0.024
-        pool_energy = float(np.sum(np.abs(raw_acts) ** q)) * 0.55 + (ch_sd ** q)
+        pool_energy = float(np.sum(np.abs(raw_acts_arr) ** q)) * 0.55 + (ch_sd ** q)
         denom = (c50 ** q) + pool_energy
-        norm_acts = np.sign(raw_acts) * (np.abs(raw_acts) ** p) / max(denom, 1e-12)
-        readout = float(np.dot(norm_acts, np.array(self.weights)))
+        norm_acts = np.sign(raw_acts_arr) * (np.abs(raw_acts_arr) ** p) / max(denom, 1e-12)
+        readout = float(np.dot(norm_acts, np.array(weights)))
 
         local_gain = (p * (max(abs(c_sig), c50 * 0.6) ** (p - 1.0))) / max(denom, 1e-12)
         sigma_ext = local_gain * ch_sd
@@ -488,8 +557,19 @@ class ConvNetHierarchyObserver(BaseObserver):
         norm = math.sqrt(self.unit_energy / (float(np.sum(blurred ** 2) * self.cfg.pixel_area_deg2) + 1e-12))
         return blurred * norm
 
-    def get_spatial_template(self) -> np.ndarray:
-        return self.effective_template.copy()
+    def get_spatial_template(self, target_template: Optional[np.ndarray] = None) -> np.ndarray:
+        if target_template is None:
+            return self.effective_template.copy()
+        from scipy.ndimage import gaussian_filter, zoom
+        s = target_template.copy()
+        blurred = gaussian_filter(s, sigma=1.6)
+        h, w = s.shape
+        down = zoom(blurred, 0.5, order=1)
+        pooled = zoom(down, 2.0, order=1)
+        if pooled.shape != s.shape:
+            pooled = pooled[:h, :w]
+        peak = np.max(np.abs(pooled))
+        return pooled / peak if peak > 1e-12 else pooled
 
     def compute_decision_variable(
         self,
@@ -497,9 +577,12 @@ class ConvNetHierarchyObserver(BaseObserver):
         rng: np.random.Generator,
         reference_template: Optional[np.ndarray] = None,
     ) -> float:
-        c_sig = float(np.sum(contrast_patch * self.ideal_template) * self.cfg.pixel_area_deg2) / self.unit_energy
-        residual = contrast_patch - c_sig * self.ideal_template
-        lin = float(np.sum(contrast_patch * self.effective_template) * self.cfg.pixel_area_deg2) / self.unit_energy
+        target = self.ideal_template if reference_template is None else reference_template
+        tmpl = self.effective_template if reference_template is None else self.get_spatial_template(reference_template)
+        u_e = float(np.sum(target ** 2) * self.cfg.pixel_area_deg2)
+        c_sig = float(np.sum(contrast_patch * target) * self.cfg.pixel_area_deg2) / max(u_e, 1e-12)
+        residual = contrast_patch - c_sig * target
+        lin = float(np.sum(contrast_patch * tmpl) * self.cfg.pixel_area_deg2) / max(u_e, 1e-12)
         conv_sd = self.compute_channel_noise_sd(residual) * 1.55
 
         c_eff = 0.35 * lin + 0.65 * math.sqrt(0.556) * c_sig
@@ -563,8 +646,23 @@ class ViTPatchAttentionObserver(BaseObserver):
         norm = math.sqrt(self.unit_energy / (float(np.sum(tmpl ** 2) * self.cfg.pixel_area_deg2) + 1e-12))
         return tmpl * norm
 
-    def get_spatial_template(self) -> np.ndarray:
-        return self.patch_template.copy()
+    def get_spatial_template(self, target_template: Optional[np.ndarray] = None) -> np.ndarray:
+        if target_template is None:
+            return self.patch_template.copy()
+        s = target_template.copy()
+        h, w = s.shape
+        p = self.patch_size if hasattr(self, "patch_size") else 8
+        patched = np.zeros_like(s)
+        for y0 in range(0, h, p):
+            for x0 in range(0, w, p):
+                blk = s[y0:y0 + p, x0:x0 + p]
+                mean_val = np.mean(blk)
+                cy = (y0 + p / 2.0 - h / 2.0) / (h / 2.0)
+                cx = (x0 + p / 2.0 - w / 2.0) / (w / 2.0)
+                attn_weight = math.exp(-0.75 * (cx**2 + cy**2))
+                patched[y0:y0 + p, x0:x0 + p] = (blk * 0.40 + mean_val * 0.60) * attn_weight
+        peak = np.max(np.abs(patched))
+        return patched / peak if peak > 1e-12 else patched
 
     def compute_decision_variable(
         self,
@@ -572,9 +670,12 @@ class ViTPatchAttentionObserver(BaseObserver):
         rng: np.random.Generator,
         reference_template: Optional[np.ndarray] = None,
     ) -> float:
-        c_sig = float(np.sum(contrast_patch * self.ideal_template) * self.cfg.pixel_area_deg2) / self.unit_energy
-        residual = contrast_patch - c_sig * self.ideal_template
-        lin_raw = float(np.sum(contrast_patch * self.patch_template) * self.cfg.pixel_area_deg2) / self.unit_energy
+        target = self.ideal_template if reference_template is None else reference_template
+        tmpl = self.patch_template if reference_template is None else self.get_spatial_template(reference_template)
+        u_e = float(np.sum(target ** 2) * self.cfg.pixel_area_deg2)
+        c_sig = float(np.sum(contrast_patch * target) * self.cfg.pixel_area_deg2) / max(u_e, 1e-12)
+        residual = contrast_patch - c_sig * target
+        lin_raw = float(np.sum(contrast_patch * tmpl) * self.cfg.pixel_area_deg2) / max(u_e, 1e-12)
         vit_sd = self.compute_channel_noise_sd(residual) * 1.75
 
         c_eff = 0.35 * lin_raw + 0.65 * math.sqrt(0.697) * c_sig
@@ -647,8 +748,23 @@ class LocalVLMObserver(BaseObserver):
         norm = math.sqrt(self.unit_energy / (float(np.sum(tmpl ** 2) * self.cfg.pixel_area_deg2) + 1e-12))
         return tmpl * norm
 
-    def get_spatial_template(self) -> np.ndarray:
-        return self.vlm_template.copy()
+    def get_spatial_template(self, target_template: Optional[np.ndarray] = None) -> np.ndarray:
+        if target_template is None:
+            return self.vlm_template.copy()
+        s = target_template.copy()
+        h, w = s.shape
+        p = 8
+        vlm_map = np.zeros_like(s)
+        for y0 in range(0, h, p):
+            for x0 in range(0, w, p):
+                blk = s[y0:y0 + p, x0:x0 + p]
+                cy = (y0 + p / 2.0 - h / 2.0) / (h / 2.0)
+                cx = (x0 + p / 2.0 - w / 2.0) / (w / 2.0)
+                semantic_weight = 1.0 + 0.6 * math.exp(-((cy - 0.22)**2 + cx**2) / 0.3)
+                vlm_map[y0:y0 + p, x0:x0 + p] = blk * semantic_weight
+        vlm_map = np.round(vlm_map * 8.0) / 8.0
+        peak = np.max(np.abs(vlm_map))
+        return vlm_map / peak if peak > 1e-12 else vlm_map
 
     def probe_live_ollama_2afc(
         self,
@@ -716,10 +832,13 @@ class LocalVLMObserver(BaseObserver):
         rng: np.random.Generator,
         reference_template: Optional[np.ndarray] = None,
     ) -> float:
+        target = self.ideal_template if reference_template is None else reference_template
+        tmpl = self.vlm_template if reference_template is None else self.get_spatial_template(reference_template)
+        u_e = float(np.sum(target ** 2) * self.cfg.pixel_area_deg2)
         quantized = np.round(contrast_patch * 127.5) / 127.5
-        c_sig = float(np.sum(quantized * self.ideal_template) * self.cfg.pixel_area_deg2) / self.unit_energy
-        residual = quantized - c_sig * self.ideal_template
-        lin = float(np.sum(quantized * self.vlm_template) * self.cfg.pixel_area_deg2) / self.unit_energy
+        c_sig = float(np.sum(quantized * target) * self.cfg.pixel_area_deg2) / max(u_e, 1e-12)
+        residual = quantized - c_sig * target
+        lin = float(np.sum(quantized * tmpl) * self.cfg.pixel_area_deg2) / max(u_e, 1e-12)
         vlm_sd = self.compute_channel_noise_sd(residual) * 1.95
 
         c_eff = 0.35 * lin + 0.65 * math.sqrt(0.627) * c_sig

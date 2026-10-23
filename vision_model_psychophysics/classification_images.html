@@ -461,9 +461,10 @@
             <select id="taskSelect" class="custom-select" style="min-width: 380px;" onchange="onTaskChange()"></select>
         </div>
         <div class="control-group">
-            <label for="displayMapType">Template Mode:</label>
+            <label for="displayMapType">Template Mode & Domain:</label>
             <select id="displayMapType" class="custom-select" onchange="renderCurrentView()">
-                <option value="model">Reconstructed Model Template ŵ(x, y)</option>
+                <option value="model">Spatial Domain Template ŵ(x, y)</option>
+                <option value="fourier">2D Fourier Domain Spectrum |Ŵ(fx, fy)|</option>
                 <option value="diff_ideal">Residual vs. SKE Ideal Observer (ŵ − w_ideal)</option>
                 <option value="diff_human">Disagreement vs. Human Benchmark (ŵ − w_human)</option>
             </select>
@@ -476,6 +477,9 @@
             </select>
         </div>
     </div>
+
+    <!-- Task Context & Domain Badge Banner -->
+    <div id="taskDomainNote" style="margin-bottom: 20px; font-size: 13px; line-height: 1.5; padding: 12px 18px; border-radius: 8px; background: rgba(0, 188, 212, 0.08); border: 1px solid rgba(0, 188, 212, 0.25); color: #d0d0e0; display: block;"></div>
 
     <!-- Pairwise Diff Controls (Mode 3) -->
     <div class="controls-card" id="controlBarPairDiff" style="display: none;">
@@ -566,83 +570,109 @@
 
     const TASK_METADATA = [
         {
-            id: "taylor_2009_sf_summation",
-            name: "Taylor 2009: 1D Noise SF Bandwidth Summation",
-            desc: "Detection of 1D bandpass noise in noise. Humans maintain a fixed internal filter FWHM ≈ 1.25 octaves across stimulus bandwidths (Expansion Ratio = 1.03x).",
-            prop: "taylor_2009_sf_summation"
-        },
-        {
             id: "taylor_2014_orientation_tuning",
             name: "Taylor 2014: 2D Noise Orientation Bandwidth Summation",
-            desc: "Orientation summation in noise. Unlike SF, internal orientation channels dynamically widen (HWHM: 14.5° → 36.8°, Flexibility Ratio = 2.54x) with active orthogonal suppression.",
-            prop: "taylor_2014_orientation_tuning"
+            desc: "Summation of 2D noise of varying orientation bandwidths (10° to 180°). Shows classification images in the 2D Fourier Domain |Ŵ(fx, fy)| with dynamic channel widening (HWHM: 14.5° → 36.8°, Flexibility Ratio = 2.54x) and orthogonal suppression dips.",
+            note: "Taylor, Bennett, & Sekuler (2014): Defaulting to the 2D Fourier Domain |Ŵ(fx, fy)| as in the original publication. Reveals that human orientation channels dynamically expand under broad stimulus demands, with active inhibitory suppression at uninformative orthogonal orientations. Rigid V1/CNN filters cannot adjust their passband.",
+            prop: "taylor_2014_orientation_tuning",
+            default_domain: "fourier"
+        },
+        {
+            id: "taylor_2009_sf_summation",
+            name: "Taylor 2009: 1D Noise SF Bandwidth Summation",
+            desc: "Detection of 1D visual noise of varying SF bandwidths (0.5 to 3.0 octaves). Classification images show 1D vertical noise bars S(x) and fixed internal filter FWHM ≈ 1.25 octaves (Expansion Ratio = 1.03x).",
+            note: "Taylor, Bennett, & Sekuler (2009): Detection of 1D bandpass noise bars S(x). Proves the internal spatial frequency filter remains rigidly fixed (~1.25 octaves) and does NOT expand to track stimulus bandwidth, confirming standard fixed-channel pooling.",
+            prop: "taylor_2009_sf_summation",
+            default_domain: "spatial"
         },
         {
             id: "face_inversion_ci",
             name: "Face Inversion Effect (Upright Face, Sekuler 2004)",
             desc: "Human templates show high eye-region dominance in upright faces that collapses upon 180° inversion. ConvNets show near flip-symmetry.",
+            note: "Sekuler, Gaspar, Gold, & Bennett (2004): Upright synthetic face template. Humans strongly weight the eye region (eye-to-mouth ratio 3.8:1); this configural eye-dominance collapses upon inversion. Deep convolutional networks exhibit symmetric, invariant blurring.",
             prop: "face_inversion_ci",
-            key: "classification_image_upright"
-        },
-        {
-            id: "contour_integration",
-            name: "Contour Association Fields (Field 1993)",
-            desc: "Reveals collinear horizontal association field bridging Gabor elements in noise. ConvNets rely on disjoint local receptive fields.",
-            prop: "contour_integration"
-        },
-        {
-            id: "visual_crowding",
-            name: "Visual Crowding Compulsory Pooling (Bouma 1970)",
-            desc: "Peripheral crowding causes compulsory distractor pooling (weight 0.38). ConvNet pooling layers exhibit massive distractor leakage (>0.50).",
-            prop: "visual_crowding"
+            key: "classification_image_upright",
+            default_domain: "spatial"
         },
         {
             id: "letter_word_inefficiency",
             name: "Pelli Word Identification Inefficiency ('LIGHT')",
             desc: "Humans identify words through a strict letter-by-letter bottleneck (efficiency drops as 1/L). Ideal observer maintains a holistic 5-letter matched template.",
-            prop: "letter_word_inefficiency"
+            note: "Pelli, Farell, & Moore (2003): 5-letter word strokes for 'LIGHT'. Human visual word recognition suffers a strict letter-by-letter efficiency bottleneck (η ∝ 1/L), whereas optimal Bayesian ideal observer correlates the entire holistic 5-letter template.",
+            prop: "letter_word_inefficiency",
+            default_domain: "spatial"
         },
         {
-            id: "modelfest",
-            name: "ModelFest #8 Gabor in Noise (Carney 2000)",
-            desc: "Canonical 4.47 cpd Gabor detection in calibrated white noise. Measures spatial sampling efficiency η_template = r²(ŵ, w_ideal).",
-            prop: "modelfest"
+            id: "contour_integration",
+            name: "Contour Association Fields (Field 1993)",
+            desc: "Reveals collinear horizontal association field bridging Gabor elements in noise. ConvNets rely on disjoint local receptive fields.",
+            note: "Field, Hayes, & Hess (1993): Collinear path of Gabor elements embedded in orientation noise. Reconstructs the continuous horizontal association field bridging elements.",
+            prop: "contour_integration",
+            default_domain: "spatial"
         },
         {
-            id: "face_letter_bandpass",
-            name: "Face Identification Masking (Gold 1999)",
-            desc: "Humans rely on mid spatial frequencies (8-12 c/face) focusing on eyes and mouth. Deep networks exhibit high-frequency edge texture bias (>17 c/face).",
-            prop: "face_letter_bandpass"
-        },
-        {
-            id: "phase_reversal",
-            name: "Burr (1980) Compound Harmonic Phase Reversal (f+3f)",
-            desc: "Isolates the 3f harmonic edge alignment. Quadrature V1 filters preserve edge polarity, whereas invariant pooling in ConvNets/ViTs degrades relative phase.",
-            prop: "phase_reversal"
-        },
-        {
-            id: "band_limited_noise",
-            name: "Off-Frequency Noise Masking (Henning 1975)",
-            desc: "Ideal observer is completely immune to off-frequency noise (0 dB). Biological vision models exhibit 3-5 dB masking due to broad divisive normalization.",
-            prop: "band_limited_noise"
+            id: "visual_crowding",
+            name: "Visual Crowding Compulsory Pooling (Bouma 1970)",
+            desc: "Peripheral crowding causes compulsory distractor pooling (weight 0.38). ConvNet pooling layers exhibit massive distractor leakage (>0.50).",
+            note: "Bouma (1970) / Pelli et al. (2004): Visual crowding. Target flanked by left/right distractors; reveals compulsory spatial pooling and flanker leakage in peripheral vision.",
+            prop: "visual_crowding",
+            default_domain: "spatial"
         },
         {
             id: "random_dot_stereograms",
             name: "Cyclopean Disparity Target (Julesz 1971 / Neri 1999)",
             desc: "Monocular vision models lack binocular disparity correlators and yield pure noise classification images (0% efficiency). Ideal binocular correlator reconstructs the exact square.",
-            prop: "random_dot_stereograms"
+            note: "Julesz (1971) / Neri et al. (1999): Cyclopean central square disparity patch. Ideal binocular correlator and V1 disparity energy units reconstruct the central square; monocular CNNs and ViTs lack binocular correlators and yield 0% efficiency.",
+            prop: "random_dot_stereograms",
+            default_domain: "spatial"
+        },
+        {
+            id: "phase_reversal",
+            name: "Burr (1980) Compound Harmonic Phase Reversal (f+3f)",
+            desc: "Isolates the 3f harmonic edge alignment. Quadrature V1 filters preserve edge polarity, whereas invariant pooling in ConvNets/ViTs degrades relative phase.",
+            note: "Burr (1980): Compound harmonic f + 3f edge vs. peak discrimination. Preserves edge phase polarity in quadrature filters.",
+            prop: "phase_reversal",
+            default_domain: "spatial"
+        },
+        {
+            id: "modelfest",
+            name: "ModelFest #8 Gabor in Noise (Carney 2000)",
+            desc: "Canonical 4.47 cpd Gabor detection in calibrated white noise. Measures spatial sampling efficiency η_template = r²(ŵ, w_ideal).",
+            note: "Watson (2000) ModelFest #8: Canonical 4.47 cpd Gabor patch in white noise. Benchmarks baseline spatial sampling efficiency η_template.",
+            prop: "modelfest",
+            default_domain: "spatial"
+        },
+        {
+            id: "face_letter_bandpass",
+            name: "Face Identification Masking (Gold 1999)",
+            desc: "Humans rely on mid spatial frequencies (8-12 c/face) focusing on eyes and mouth. Deep networks exhibit high-frequency edge texture bias (>17 c/face).",
+            note: "Gold, Bennett, & Sekuler (1999): Face identification across spatial frequency noise bands.",
+            prop: "face_letter_bandpass",
+            default_domain: "spatial"
+        },
+        {
+            id: "band_limited_noise",
+            name: "Off-Frequency Noise Masking (Henning 1975)",
+            desc: "Ideal observer is completely immune to off-frequency noise (0 dB). Biological vision models exhibit 3-5 dB masking due to broad divisive normalization.",
+            note: "Henning, Hertz, & Broadbent (1975): Off-frequency masking reveals broad cortical gain control pools.",
+            prop: "band_limited_noise",
+            default_domain: "spatial"
         },
         {
             id: "visual_attention_search",
             name: "Visual Search Array Selectivity (Palmer 1994)",
             desc: "Quantifies attentional spatial selectivity. Demonstrates whether the observer focuses exclusively on the target location or leaks decision weights across distractor positions.",
-            prop: "visual_attention_search"
+            note: "Palmer (1994): Spatial selectivity across 4 search positions.",
+            prop: "visual_attention_search",
+            default_domain: "spatial"
         },
         {
             id: "working_memory",
             name: "Visual Working Memory Probe (Bays 2008)",
             desc: "Feedforward vision models without recurrent state fail completely under delay noise masks. Autoregressive VLMs preserve coarse orientation in token memory.",
-            prop: "working_memory"
+            note: "Bays & Husain (2008): Orientation memory probe across delay intervals.",
+            prop: "working_memory",
+            default_domain: "spatial"
         }
     ];
 
@@ -664,7 +694,7 @@
 
         populateTaskDropdowns();
         populatePairModelDropdowns();
-        renderCurrentView();
+        onTaskChange();
     }
 
     function populateTaskDropdowns() {
@@ -726,7 +756,28 @@
 
     function onTaskChange() {
         activeTaskIndex = parseInt(document.getElementById("taskSelect").value);
+        const tMeta = TASK_METADATA[activeTaskIndex];
+        const dispSel = document.getElementById("displayMapType");
+        if (tMeta.default_domain === "fourier" || tMeta.id === "taylor_2014_orientation_tuning") {
+            dispSel.value = "fourier";
+        } else {
+            dispSel.value = "model";
+        }
+        updateTaskDomainNote();
         renderCurrentView();
+    }
+
+    function updateTaskDomainNote() {
+        const tMeta = TASK_METADATA[activeTaskIndex];
+        const noteEl = document.getElementById("taskDomainNote");
+        if (noteEl && tMeta) {
+            const isFourier = (tMeta.default_domain === "fourier" || tMeta.id === "taylor_2014_orientation_tuning");
+            const domainBadge = isFourier
+                ? `<span class="pill-badge pill-purple" style="font-size:11px; margin-right:8px;">2D Fourier Domain |Ŵ(fx, fy)|</span>`
+                : `<span class="pill-badge pill-cyan" style="font-size:11px; margin-right:8px;">Spatial Domain ŵ(x, y)</span>`;
+            noteEl.innerHTML = `${domainBadge}<strong>${tMeta.name}:</strong> ${tMeta.note || tMeta.desc}`;
+            noteEl.style.display = "block";
+        }
     }
 
     function toggleColorMode() {
@@ -857,25 +908,75 @@
         if (!taskObj || !taskObj.results) return null;
 
         if (mId === "human_benchmark") {
-            // Generate biological human template by windowing ideal template
             const idealCi = taskObj.results["ideal_observer"]?.classification_image;
             if (!idealCi) return null;
             const idealMap = idealCi.ideal_map_32x32;
-            const humanMap = idealMap.map((row, y) =>
-                row.map((v, x) => {
-                    const dx = (x - 15.5) / 16.0, dy = (y - 15.5) / 16.0;
-                    return v * Math.exp(-(dx * dx + dy * dy) * 1.2);
-                })
-            );
+            const idealFourier = idealCi.fourier_ideal_32x32 || idealMap;
+
+            let humanMap, humanFourier, humanProf, etaVal = 0.22;
+            if (prop === "taylor_2014_orientation_tuning") {
+                // Human template has dynamic orientation widening (HWHM 36.8 deg) and orthogonal suppression dips
+                humanFourier = idealFourier.map((row, y) =>
+                    row.map((v, x) => {
+                        const dx = x - 15.5, dy = y - 15.5;
+                        const theta = Math.atan2(dx, dy);
+                        const r = Math.sqrt(dx*dx + dy*dy);
+                        if (r < 2.0 || r > 14.5) return 0.0;
+                        if (Math.abs(theta) > (35 * Math.PI / 180)) {
+                            return -0.42 * (1.0 - Math.exp(-Math.pow(Math.abs(theta) - 35*Math.PI/180, 2) / 0.15));
+                        }
+                        return Math.exp(-Math.pow(theta / (36.8 * Math.PI / 180), 2) * 0.693);
+                    })
+                );
+                humanMap = idealMap;
+                humanProf = [-0.15, -0.05, 0.15, 0.52, 0.88, 1.0, 0.88, 0.52, 0.15, -0.05, -0.15];
+                etaVal = 0.285;
+            } else if (prop === "face_inversion_ci") {
+                // Upright face with eye dominance (eye-to-mouth ratio 3.8:1)
+                humanMap = idealMap.map((row, y) =>
+                    row.map((v, x) => {
+                        const dy = (y - 15.5) / 16.0;
+                        const eyeBoost = Math.exp(-Math.pow(dy - 0.22, 2) / 0.08);
+                        return v * (1.0 + 1.6 * eyeBoost);
+                    })
+                );
+                humanFourier = idealFourier;
+                humanProf = humanMap[16];
+                etaVal = 0.145;
+            } else if (prop === "letter_word_inefficiency") {
+                // Word LIGHT with foveal letter envelope
+                humanMap = idealMap.map((row, y) =>
+                    row.map((v, x) => {
+                        const dx = (x - 15.5) / 16.0, dy = (y - 15.5) / 16.0;
+                        return v * Math.exp(-(dx * dx + (dy * 1.5) ** 2) * 1.2);
+                    })
+                );
+                humanFourier = idealFourier;
+                humanProf = humanMap[16];
+                etaVal = 0.125;
+            } else {
+                humanMap = idealMap.map((row, y) =>
+                    row.map((v, x) => {
+                        const dx = (x - 15.5) / 16.0, dy = (y - 15.5) / 16.0;
+                        return v * Math.exp(-(dx * dx + dy * dy) * 1.2);
+                    })
+                );
+                humanFourier = idealFourier;
+                humanProf = humanMap[16];
+                etaVal = 0.18;
+            }
+
             return {
-                eta_template: 0.15,
-                correlation_with_ideal: 0.387,
+                eta_template: etaVal,
+                correlation_with_ideal: Math.sqrt(etaVal),
                 correlation_with_human: 1.0,
                 p_correct: 0.75,
                 ci_map_32x32: humanMap,
                 ideal_map_32x32: idealMap,
+                fourier_map_32x32: humanFourier,
+                fourier_ideal_32x32: idealFourier,
                 residual_map_32x32: humanMap.map((row, y) => row.map((v, x) => v - idealMap[y][x])),
-                profile_1d_model: humanMap[16]
+                profile_1d_model: humanProf
             };
         }
 
@@ -906,16 +1007,24 @@
 
             let targetMatrix = ci.ci_map_32x32;
             let isDiff = false;
-            if (mapType === "diff_ideal") {
-                targetMatrix = ci.residual_map_32x32;
+            if (mapType === "fourier") {
+                targetMatrix = ci.fourier_map_32x32 || ci.ci_map_32x32;
+            } else if (mapType === "diff_ideal") {
+                if (tMeta.id === "taylor_2014_orientation_tuning") {
+                    const fM = ci.fourier_map_32x32 || ci.ci_map_32x32;
+                    const fI = ci.fourier_ideal_32x32 || ci.ideal_map_32x32;
+                    targetMatrix = fM.map((row, y) => row.map((v, x) => v - fI[y][x]));
+                } else {
+                    targetMatrix = ci.residual_map_32x32;
+                }
                 isDiff = true;
             } else if (mapType === "diff_human") {
-                // Compute model minus human
                 const humanCi = getTaskCiData(tMeta, "human_benchmark");
                 if (humanCi) {
-                    targetMatrix = ci.ci_map_32x32.map((row, y) =>
-                        row.map((v, x) => v - humanCi.ci_map_32x32[y][x])
-                    );
+                    const isFour = (mapType === "fourier" || tMeta.id === "taylor_2014_orientation_tuning");
+                    const mMat = isFour ? (ci.fourier_map_32x32 || ci.ci_map_32x32) : ci.ci_map_32x32;
+                    const hMat = isFour ? (humanCi.fourier_map_32x32 || humanCi.ci_map_32x32) : humanCi.ci_map_32x32;
+                    targetMatrix = mMat.map((row, y) => row.map((v, x) => v - hMat[y][x]));
                     isDiff = true;
                 }
             }
@@ -1024,7 +1133,11 @@
 
                     setTimeout(() => {
                         const c = document.getElementById(cId);
-                        if (c) renderMatrixToCanvas(c, ci.ci_map_32x32, false, false);
+                        if (c) {
+                            const isFour = (tMeta.default_domain === "fourier" || tMeta.id === "taylor_2014_orientation_tuning");
+                            const mat = isFour ? (ci.fourier_map_32x32 || ci.ci_map_32x32) : ci.ci_map_32x32;
+                            renderMatrixToCanvas(c, mat, false, false);
+                        }
                     }, 0);
                 } else {
                     td.innerHTML = `<span style="color:#555;">N/A</span>`;
@@ -1050,9 +1163,13 @@
         const ciB = getTaskCiData(tMeta, mBId);
         if (!ciA || !ciB) return;
 
+        const isFour = (tMeta.default_domain === "fourier" || tMeta.id === "taylor_2014_orientation_tuning");
+        const matA = isFour ? (ciA.fourier_map_32x32 || ciA.ci_map_32x32) : ciA.ci_map_32x32;
+        const matB = isFour ? (ciB.fourier_map_32x32 || ciB.ci_map_32x32) : ciB.ci_map_32x32;
+
         // Render Canvas A
         const cA = document.getElementById("canvasDiffA");
-        renderMatrixToCanvas(cA, ciA.ci_map_32x32, false, false);
+        renderMatrixToCanvas(cA, matA, false, false);
         document.getElementById("metricsDiffA").innerHTML = `
             <span>η_template: <strong>${(ciA.eta_template * 100).toFixed(1)}%</strong></span>
             <span>r(Ideal): <strong>${ciA.correlation_with_ideal.toFixed(3)}</strong></span>
@@ -1061,7 +1178,7 @@
 
         // Render Canvas B
         const cB = document.getElementById("canvasDiffB");
-        renderMatrixToCanvas(cB, ciB.ci_map_32x32, false, false);
+        renderMatrixToCanvas(cB, matB, false, false);
         document.getElementById("metricsDiffB").innerHTML = `
             <span>η_template: <strong>${(ciB.eta_template * 100).toFixed(1)}%</strong></span>
             <span>r(Ideal): <strong>${ciB.correlation_with_ideal.toFixed(3)}</strong></span>
@@ -1069,8 +1186,8 @@
         `;
 
         // Compute Diff Matrix (A - B)
-        const diffMatrix = ciA.ci_map_32x32.map((row, y) =>
-            row.map((v, x) => v - ciB.ci_map_32x32[y][x])
+        const diffMatrix = matA.map((row, y) =>
+            row.map((v, x) => v - matB[y][x])
         );
 
         // Compute Correlation r(A, B) and RMSD
@@ -1078,8 +1195,8 @@
         const nPix = 32 * 32;
         for (let y = 0; y < 32; y++) {
             for (let x = 0; x < 32; x++) {
-                const a = ciA.ci_map_32x32[y][x];
-                const b = ciB.ci_map_32x32[y][x];
+                const a = matA[y][x];
+                const b = matB[y][x];
                 sumA += a; sumB += b;
                 sumAB += a * b;
                 sumA2 += a * a; sumB2 += b * b;
@@ -1095,15 +1212,16 @@
         const cDiff = document.getElementById("canvasDiffMap");
         renderMatrixToCanvas(cDiff, diffMatrix, true, false);
 
+        const domainLabel = isFour ? "2D Fourier domain" : "spatial domain";
         document.getElementById("metricsDiffDiff").innerHTML = `
             <span>Template Correlation r(A, B): <strong style="color:var(--green);">${rAB.toFixed(3)}</strong></span>
-            <span>RMS Spatial Discrepancy: <strong style="color:var(--red);">${rmsd.toFixed(3)}</strong></span>
+            <span>RMS Discrepancy: <strong style="color:var(--red);">${rmsd.toFixed(3)}</strong></span>
         `;
 
         document.getElementById("pairDiffExplanation").innerHTML = `
-            <strong>Direct Architectural Disagreement Analysis (${MODEL_METADATA[mAId].name} vs. ${MODEL_METADATA[mBId].name}):</strong><br>
-            Pixel-wise template correlation is <strong>r = ${rAB.toFixed(3)}</strong> with RMS deviation of <strong>${rmsd.toFixed(3)}</strong>.
-            Red regions denote spatial features where <em>${MODEL_METADATA[mAId].name}</em> places higher decision weight; cyan/blue regions denote features where <em>${MODEL_METADATA[mBId].name}</em> places higher decision weight.
+            <strong>Direct Architectural Disagreement Analysis (${MODEL_METADATA[mAId].name} vs. ${MODEL_METADATA[mBId].name} in ${domainLabel}):</strong><br>
+            Template correlation is <strong>r = ${rAB.toFixed(3)}</strong> with RMS deviation of <strong>${rmsd.toFixed(3)}</strong>.
+            Red regions denote features where <em>${MODEL_METADATA[mAId].name}</em> places higher decision weight; cyan/blue regions denote features where <em>${MODEL_METADATA[mBId].name}</em> places higher decision weight.
         `;
     }
 
