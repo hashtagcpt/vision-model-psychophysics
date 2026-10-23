@@ -15,6 +15,9 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
+from classification_image_engine import compute_classification_image_2ifc
+from stimuli import StimulusConfig
+
 # Published Human Threshold Data (Log10 Contrast Sensitivity and Threshold from Carney et al. 2000)
 # Format: stimulus_index: (name, human_log_cs, human_sem, description)
 MODELFEST_HUMAN_DATA: Dict[int, Dict[str, Any]] = {
@@ -137,11 +140,11 @@ def evaluate_modelfest_suite(
             if m_id == "ideal_observer":
                 continue
             # Grid search for 2IFC threshold in calibrated noise
-            c_grid = np.geomspace(c_ideal * 0.8, c_ideal * 24.0, 12)
+            c_grid = np.geomspace(c_ideal * 0.8, c_ideal * 20.0, 8)
             dprimes = []
             for c_test in c_grid:
                 diffs = []
-                for _ in range(40):
+                for _ in range(20):
                     n1 = rng.normal(0.0, sigma_px, size=template.shape)
                     n2 = rng.normal(0.0, sigma_px, size=template.shape)
                     p_target = c_test * template + n1
@@ -158,14 +161,27 @@ def evaluate_modelfest_suite(
             results_by_model[m_id]["thresholds"][stim_id] = round(c_th, 5)
             results_by_model[m_id]["efficiencies"][stim_id] = round(eta, 4)
 
-    # Compute correlation with human ModelFest thresholds
-    for m_id in observers:
+    # Compute correlation with human ModelFest thresholds and exemplar classification image
+    tmpl_gabor8 = generate_modelfest_stimulus(8, size_px, deg_per_px)
+    cfg = StimulusConfig(size_px=size_px, px_per_deg=1.0 / deg_per_px)
+
+    for m_id, obs in observers.items():
         mod_th = [results_by_model[m_id]["thresholds"][i] for i in sorted(MODELFEST_HUMAN_DATA.keys())]
         mod_log_cs = [-math.log10(max(t, 1e-6)) for t in mod_th]
         r_val = float(np.corrcoef(mod_log_cs, human_log_cs)[0, 1])
         rmse = float(np.sqrt(np.mean((np.array(mod_log_cs) - np.array(human_log_cs)) ** 2)))
         results_by_model[m_id]["corr_with_human"] = round(r_val, 3)
         results_by_model[m_id]["rmse_log_cs"] = round(rmse, 3)
+
+        # 2D Classification Image for ModelFest #8 Gabor
+        results_by_model[m_id]["classification_image"] = compute_classification_image_2ifc(
+            obs,
+            cfg,
+            target_template=tmpl_gabor8,
+            n_trials=350,
+            n_ext_deg2=n_ext_deg2,
+            seed=seed + 8,
+        )
 
     return {
         "stimuli": MODELFEST_HUMAN_DATA,

@@ -9,9 +9,12 @@ cues are strictly zero (pure random noise).
 from __future__ import annotations
 
 import math
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 import numpy as np
+
+from classification_image_engine import compute_classification_image_2ifc
+from stimuli import StimulusConfig
 
 HUMAN_STEREOGRAM_DATA = {
     "task": "Cyclopean Shape Detection in Random-Dot Stereograms (RDS)",
@@ -84,6 +87,24 @@ def evaluate_stereogram_suite(observers: Dict[str, Any]) -> Dict[str, Any]:
                 if not cyclopean else "Binocular cross-correlation present."
             )
         }
+
+    # 2D Classification Image for Cyclopean Disparity Target (Neri et al. 1999)
+    # The target template is the central 28x28 square disparity region
+    cfg = StimulusConfig(size_px=64)
+    tmpl_stereo = np.zeros((64, 64), dtype=np.float64)
+    tmpl_stereo[18:46, 18:46] = 1.0
+    tmpl_stereo -= np.mean(tmpl_stereo)
+    tmpl_stereo /= max(np.max(np.abs(tmpl_stereo)), 1e-12)
+
+    for m_id, obs in observers.items():
+        results[m_id]["classification_image"] = compute_classification_image_2ifc(
+            obs,
+            cfg,
+            target_template=tmpl_stereo,
+            n_trials=350,
+            n_ext_deg2=1.6e-4,
+            seed=1971 + hash(m_id) % 1000,
+        )
 
     return {
         "human_benchmark": HUMAN_STEREOGRAM_DATA,

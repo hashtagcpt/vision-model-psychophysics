@@ -10,9 +10,12 @@ or discard phase in favor of phase-invariant Fourier power.
 from __future__ import annotations
 
 import math
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import numpy as np
+
+from classification_image_engine import compute_classification_image_2ifc
+from stimuli import StimulusConfig
 
 # Published Human Compound Phase Discrimination Data (Burr 1980; Bennett & Banks 1991)
 HUMAN_PHASE_BENCHMARK = {
@@ -109,6 +112,23 @@ def evaluate_phase_reversal_suite(
             "relative_phase_sensitivity_index": round(float(phase_sen), 2),
             "preserves_harmonic_phase": bool(phase_sen >= 0.80),
         }
+
+    # 2D Classification Image for Compound Harmonic Phase Discrimination
+    cfg = StimulusConfig(size_px=64)
+    tmpl_square = generate_compound_harmonic_stimulus(0.0)
+    tmpl_triangle = generate_compound_harmonic_stimulus(180.0)
+    tmpl_diff = tmpl_square - tmpl_triangle
+    tmpl_diff /= max(np.max(np.abs(tmpl_diff)), 1e-12)
+
+    for m_id, obs in observers.items():
+        results[m_id]["classification_image"] = compute_classification_image_2ifc(
+            obs,
+            cfg,
+            target_template=tmpl_diff,
+            n_trials=350,
+            n_ext_deg2=1.6e-4,
+            seed=1980 + hash(m_id) % 1000,
+        )
 
     return {
         "human_benchmark": HUMAN_PHASE_BENCHMARK,

@@ -9,9 +9,12 @@ spatial frequency channels used for complex object identification in noise.
 from __future__ import annotations
 
 import math
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
+
+from classification_image_engine import compute_classification_image_2ifc
+from stimuli import StimulusConfig
 
 # Published human critical spatial frequencies (cycles per object / cycles per face)
 HUMAN_BANDPASS_BENCHMARK: Dict[str, Dict[str, Any]] = {
@@ -111,6 +114,30 @@ def evaluate_face_letter_bandpass_suite(
         # Ratio of high-frequency (32 c/face) to low-frequency (4 c/face) masking (Texture vs Holistic Bias)
         hi_lo = results[m_id]["face_tuning"][32.0] / max(results[m_id]["face_tuning"][4.0], 1e-6)
         results[m_id]["high_sf_bias_ratio"] = round(float(hi_lo), 2)
+
+    # 2D Classification Image for Face Masking Task (Gold et al. 1999)
+    cfg = StimulusConfig(size_px=64)
+    # Generate canonical face template
+    n = 64
+    coords = (np.arange(n, dtype=np.float64) - (n - 1) / 2.0) / (n / 2.0)
+    x, y = np.meshgrid(coords, coords)
+    head = np.exp(-((x / 0.65) ** 2 + (y / 0.85) ** 2) * 3.5)
+    eye_l = np.exp(-(((x + 0.25) / 0.12) ** 2 + ((y - 0.22) / 0.07) ** 2) * 18.0)
+    eye_r = np.exp(-(((x - 0.25) / 0.12) ** 2 + ((y - 0.22) / 0.07) ** 2) * 18.0)
+    mouth = np.exp(-((x / 0.26) ** 2 + ((y + 0.38) / 0.08) ** 2) * 20.0)
+    tmpl_face = head * 0.40 - (eye_l * 0.90 + eye_r * 0.90 + mouth * 0.70)
+    tmpl_face -= np.mean(tmpl_face)
+    tmpl_face /= max(np.max(np.abs(tmpl_face)), 1e-12)
+
+    for m_id, obs in observers.items():
+        results[m_id]["classification_image"] = compute_classification_image_2ifc(
+            obs,
+            cfg,
+            target_template=tmpl_face,
+            n_trials=350,
+            n_ext_deg2=1.6e-4,
+            seed=1999 + hash(m_id) % 1000,
+        )
 
     return {
         "human_benchmark": HUMAN_BANDPASS_BENCHMARK,

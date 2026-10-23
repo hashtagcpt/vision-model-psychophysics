@@ -8,9 +8,12 @@ evaluating contrast detection in low-pass, on-frequency, and high-pass noise ban
 from __future__ import annotations
 
 import math
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import numpy as np
+
+from classification_image_engine import compute_classification_image_2ifc
+from stimuli import StimulusConfig, generate_gabor_template
 
 HUMAN_BAND_LIMITED_DATA = {
     "task": "4.0 cpd Gabor Detection in Band-Limited Noise Bands",
@@ -48,6 +51,20 @@ def evaluate_band_limited_suite(observers: Dict[str, Any]) -> Dict[str, Any]:
             "high_pass_mask_db": round(hp_db, 1),
             "exhibits_off_frequency_gain_control": bool(lp_db >= 3.0),
         }
+
+    # 2D Classification Image for 4 cpd Gabor in noise
+    cfg = StimulusConfig(sf_cpd=4.0, orientation_deg=0.0)
+    tmpl_gabor = generate_gabor_template(cfg, orientation_deg=0.0)
+
+    for m_id, obs in observers.items():
+        results[m_id]["classification_image"] = compute_classification_image_2ifc(
+            obs,
+            cfg,
+            target_template=tmpl_gabor,
+            n_trials=350,
+            n_ext_deg2=1.6e-4,
+            seed=1975 + hash(m_id) % 1000,
+        )
 
     return {
         "human_benchmark": HUMAN_BAND_LIMITED_DATA,

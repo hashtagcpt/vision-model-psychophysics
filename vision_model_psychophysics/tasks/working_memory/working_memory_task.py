@@ -9,9 +9,12 @@ across memory load (K = 1, 2, 4, 6 items) with intervening visual noise masks.
 from __future__ import annotations
 
 import math
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import numpy as np
+
+from classification_image_engine import compute_classification_image_2ifc
+from stimuli import StimulusConfig, generate_gabor_template
 
 # Published Human Visual Working Memory Data (Bays & Husain 2008, Science)
 HUMAN_WORKING_MEMORY_DATA = {
@@ -71,6 +74,20 @@ def evaluate_working_memory_suite(observers: Dict[str, Any]) -> Dict[str, Any]:
                 if not recurrent else "Has memory context retention."
             )
         }
+
+    # 2D Classification Image for Visual Working Memory Delayed Probe
+    cfg = StimulusConfig(sf_cpd=4.0, orientation_deg=45.0)
+    tmpl_wm = generate_gabor_template(cfg, orientation_deg=45.0)
+
+    for m_id, obs in observers.items():
+        results[m_id]["classification_image"] = compute_classification_image_2ifc(
+            obs,
+            cfg,
+            target_template=tmpl_wm,
+            n_trials=350,
+            n_ext_deg2=1.6e-4,
+            seed=2008 + hash(m_id) % 1000,
+        )
 
     return {
         "human_benchmark": HUMAN_WORKING_MEMORY_DATA,

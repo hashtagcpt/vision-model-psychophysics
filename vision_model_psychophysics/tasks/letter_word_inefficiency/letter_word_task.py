@@ -14,6 +14,9 @@ from typing import Any, Dict, List, Tuple
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
+from classification_image_engine import compute_classification_image_2ifc
+from stimuli import StimulusConfig
+
 # Published human identification efficiency vs word length (Pelli, Farell, & Greene 2003, Nature)
 PELLI_HUMAN_WORD_DATA: Dict[int, Dict[str, float]] = {
     1: {"word_length": 1, "human_efficiency_pct": 12.5, "sem": 1.2, "description": "Single letter identification"},
@@ -136,10 +139,23 @@ def evaluate_letter_word_inefficiency_suite(
     slope_human, _ = np.polyfit(log_L, np.log10(human_effs), 1)
     human_alpha = -float(slope_human)
 
-    for m_id in observers:
+    tmpl_word5 = render_word_contrast_patch("LIGHT", 1.0, width_px=64, height_px=64)
+    cfg = StimulusConfig(size_px=64, px_per_deg=32.0)
+
+    for m_id, obs in observers.items():
         effs = [results[m_id]["efficiency_by_length_pct"][L] for L in word_lengths]
         slope, _ = np.polyfit(log_L, np.log10(np.maximum(0.1, effs)), 1)
         results[m_id]["alpha_word_length_exponent"] = round(-float(slope), 2)
+
+        # 2D Classification Image for Word Detection
+        results[m_id]["classification_image"] = compute_classification_image_2ifc(
+            obs,
+            cfg,
+            target_template=tmpl_word5,
+            n_trials=350,
+            n_ext_deg2=n_ext_deg2,
+            seed=seed + 5,
+        )
 
     return {
         "human_benchmark": PELLI_HUMAN_WORD_DATA,

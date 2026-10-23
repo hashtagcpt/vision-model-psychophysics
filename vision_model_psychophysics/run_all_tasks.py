@@ -26,6 +26,9 @@ import os
 import sys
 import time
 from pathlib import Path
+from typing import Any, Dict, List
+
+import numpy as np
 
 # Add project root and tasks to path
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -46,6 +49,11 @@ from tasks.band_limited_noise.band_limited_task import evaluate_band_limited_sui
 from tasks.random_dot_stereograms.stereogram_task import evaluate_stereogram_suite
 from tasks.visual_attention_search.attention_search_task import evaluate_attention_search_suite
 from tasks.working_memory.working_memory_task import evaluate_working_memory_suite
+from tasks.taylor_2009_sf_summation.taylor_2009_task import evaluate_taylor_2009_suite
+from tasks.taylor_2014_orientation_tuning.taylor_2014_task import evaluate_taylor_2014_suite
+from tasks.face_inversion_ci.face_inversion_task import evaluate_face_inversion_suite
+from tasks.contour_integration.contour_task import evaluate_contour_integration_suite
+from tasks.visual_crowding.crowding_task import evaluate_visual_crowding_suite
 from predictions.predict_disagreements import execute_all_predictions
 
 
@@ -55,34 +63,49 @@ def execute_comprehensive_suite() -> Dict[str, Any]:
     zoo = build_observer_zoo(cfg)
 
     print("=" * 80)
-    print(" COMPREHENSIVE VISION PSYCHOPHYSICS & NOVEL PREDICTIONS SUITE")
+    print(" COMPREHENSIVE VISION PSYCHOPHYSICS & NOVEL PREDICTIONS SUITE (13 TASKS)")
     print("=" * 80)
 
-    print(" [1/9] Evaluating ModelFest 43-Stimulus Suite in Noise (Watson 2000)...")
+    print(" [1/14] Evaluating ModelFest 43-Stimulus Suite in Noise (Watson 2000)...")
     res_modelfest = evaluate_modelfest_suite(zoo)
 
-    print(" [2/9] Evaluating Letter & Word Identification Inefficiency (Pelli et al. 2003)...")
+    print(" [2/14] Evaluating Letter & Word Identification Inefficiency (Pelli et al. 2003)...")
     res_words = evaluate_letter_word_inefficiency_suite(zoo)
 
-    print(" [3/9] Evaluating Face & Letter Bandpass Noise Masking (Gold et al. 1999)...")
+    print(" [3/14] Evaluating Face & Letter Bandpass Noise Masking (Gold et al. 1999)...")
     res_bandpass = evaluate_face_letter_bandpass_suite(zoo)
 
-    print(" [4/9] Evaluating Compound Harmonic Phase Reversal (Burr 1980)...")
+    print(" [4/14] Evaluating Compound Harmonic Phase Reversal (Burr 1980)...")
     res_phase = evaluate_phase_reversal_suite(zoo)
 
-    print(" [5/9] Evaluating Band-Limited Noise Masking (Henning 1975)...")
+    print(" [5/14] Evaluating Band-Limited Noise Masking (Henning 1975)...")
     res_band_limited = evaluate_band_limited_suite(zoo)
 
-    print(" [6/9] Evaluating Random-Dot Stereograms & Cyclopean Disparity (Julesz 1971)...")
+    print(" [6/14] Evaluating Random-Dot Stereograms & Cyclopean Disparity (Julesz 1971)...")
     res_rds = evaluate_stereogram_suite(zoo)
 
-    print(" [7/9] Evaluating Visual Attention & Visual Search Inefficiency (Palmer 1994)...")
+    print(" [7/14] Evaluating Visual Attention & Visual Search Inefficiency (Palmer 1994)...")
     res_attention = evaluate_attention_search_suite(zoo)
 
-    print(" [8/9] Evaluating Visual Working Memory Precision (Bays & Husain 2008)...")
+    print(" [8/14] Evaluating Visual Working Memory Precision (Bays & Husain 2008)...")
     res_wm = evaluate_working_memory_suite(zoo)
 
-    print(" [9/9] Generating Novel Psychophysical Predictions & Disagreement Analysis...")
+    print(" [9/14] Evaluating Taylor, Bennett, & Sekuler (2009) SF Summation in Noise...")
+    res_t2009 = evaluate_taylor_2009_suite(zoo)
+
+    print(" [10/14] Evaluating Taylor, Bennett, & Sekuler (2014) Dynamic Orientation Tuning...")
+    res_t2014 = evaluate_taylor_2014_suite(zoo)
+
+    print(" [11/14] Evaluating Face Inversion Effect with Classification Images (Sekuler 2004)...")
+    res_finv = evaluate_face_inversion_suite(zoo)
+
+    print(" [12/14] Evaluating Contour Integration & Association Fields (Field et al. 1993)...")
+    res_contour = evaluate_contour_integration_suite(zoo)
+
+    print(" [13/14] Evaluating Visual Crowding & Compulsory Pooling (Bouma 1970; Pelli 2004)...")
+    res_crowding = evaluate_visual_crowding_suite(zoo)
+
+    print(" [14/14] Generating Novel Psychophysical Predictions & Disagreement Analysis...")
     res_predictions = execute_all_predictions(zoo)
 
     # Compile unified summary table across all tasks
@@ -96,6 +119,29 @@ def execute_comprehensive_suite() -> Dict[str, Any]:
         rd = res_rds["results"][m_id]
         at = res_attention["results"][m_id]
         wm = res_wm["results"][m_id]
+        t9 = res_t2009["results"][m_id]
+        t14 = res_t2014["results"][m_id]
+        fi = res_finv["results"][m_id]
+        co = res_contour["results"][m_id]
+        cr = res_crowding["results"][m_id]
+
+        # Mean template efficiency across CI tasks
+        ci_r2_vals = [
+            mf.get("classification_image", {}).get("eta_template", 0.0),
+            wd.get("classification_image", {}).get("eta_template", 0.0),
+            bp.get("classification_image", {}).get("eta_template", 0.0),
+            ph.get("classification_image", {}).get("eta_template", 0.0),
+            bl.get("classification_image", {}).get("eta_template", 0.0),
+            rd.get("classification_image", {}).get("eta_template", 0.0),
+            at.get("classification_image", {}).get("eta_template", 0.0),
+            wm.get("classification_image", {}).get("eta_template", 0.0),
+            t9.get("classification_image", {}).get("eta_template", 0.0),
+            t14.get("classification_image", {}).get("eta_template", 0.0),
+            fi.get("classification_image_upright", {}).get("eta_template", 0.0),
+            co.get("classification_image", {}).get("eta_template", 0.0),
+            cr.get("classification_image", {}).get("eta_template", 0.0),
+        ]
+        mean_ci_r2 = float(np.mean(ci_r2_vals)) if ci_r2_vals else 0.0
 
         summary_rows.append({
             "model_id": m_id,
@@ -113,6 +159,12 @@ def execute_comprehensive_suite() -> Dict[str, Any]:
             "search_set_size_slope": at["set_size_log_log_slope"],
             "working_memory_k_capacity": wm["estimated_capacity_k_items"],
             "has_recurrent_memory": wm["has_recurrent_working_memory"],
+            "taylor_2009_summation_index": t9["summation_index"],
+            "taylor_2014_flexibility_ratio": t14["bandwidth_flexibility_ratio"],
+            "face_inversion_index": fi["face_inversion_index"],
+            "contour_jitter_tolerance_deg": co["orientation_jitter_tolerance_deg"],
+            "crowding_critical_spacing": cr["critical_spacing_ratio"],
+            "mean_ci_template_efficiency_r2": round(mean_ci_r2, 3),
         })
 
     payload = {
@@ -126,6 +178,11 @@ def execute_comprehensive_suite() -> Dict[str, Any]:
         "random_dot_stereograms": res_rds,
         "visual_attention_search": res_attention,
         "working_memory": res_wm,
+        "taylor_2009_sf_summation": res_t2009,
+        "taylor_2014_orientation_tuning": res_t2014,
+        "face_inversion_ci": res_finv,
+        "contour_integration": res_contour,
+        "visual_crowding": res_crowding,
         "predictions": res_predictions,
         "summary_table": summary_rows,
     }

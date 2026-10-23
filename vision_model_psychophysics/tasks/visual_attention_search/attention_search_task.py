@@ -9,9 +9,12 @@ Tests attentional pooling, spatial uncertainty, and distractor noise integration
 from __future__ import annotations
 
 import math
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import numpy as np
+
+from classification_image_engine import compute_classification_image_2ifc
+from stimuli import StimulusConfig, generate_gabor_template
 
 # Published Human Visual Search in Noise Data (Palmer 1994, Perception & Psychophysics)
 HUMAN_ATTENTION_SEARCH_DATA = {
@@ -64,6 +67,27 @@ def evaluate_attention_search_suite(observers: Dict[str, Any]) -> Dict[str, Any]
             "attentional_capacity_loss_ratio": round(float(elevations[16] / elevations[1]), 2),
             "matches_human_search_capacity": bool(0.22 <= sl <= 0.32),
         }
+
+    # 2D Classification Image for Visual Search Array (Target at top-right quadrant)
+    cfg = StimulusConfig(size_px=64)
+    tmpl_search = np.zeros((64, 64), dtype=np.float64)
+    # Target Gabor located at (x=44, y=20)
+    for dy in range(-10, 11):
+        for dx in range(-10, 11):
+            r2 = (dx / 4.0) ** 2 + (dy / 4.0) ** 2
+            tmpl_search[20 + dy, 44 + dx] += math.exp(-r2 / 2.0) * math.cos(2.0 * math.pi * 0.15 * dx)
+    tmpl_search -= np.mean(tmpl_search)
+    tmpl_search /= max(np.max(np.abs(tmpl_search)), 1e-12)
+
+    for m_id, obs in observers.items():
+        results[m_id]["classification_image"] = compute_classification_image_2ifc(
+            obs,
+            cfg,
+            target_template=tmpl_search,
+            n_trials=350,
+            n_ext_deg2=1.6e-4,
+            seed=1994 + hash(m_id) % 1000,
+        )
 
     return {
         "human_benchmark": HUMAN_ATTENTION_SEARCH_DATA,
