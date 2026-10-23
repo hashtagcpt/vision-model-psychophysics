@@ -39,10 +39,28 @@ A comprehensive psychophysical testing suite and reverse-correlation classificat
 Modern deep neural networks and multimodal vision-language models achieve impressive recognition accuracy, but do their underlying spatial mechanisms, information filtering, and noise resilience reflect human visual processing?
 
 This suite bridges rigorous human psychophysical methodology and computational vision:
+
 1. **Calibrated External Noise**: Stimuli are embedded in calibrated Gaussian visual noise fields, ensuring the Bayesian Ideal Observer has finite, measurable thresholds and cannot perform trivially.
-2. **Bayesian Ideal Observer Efficiency**: Measures absolute efficiency $\eta = (d' / d'_{\text{ideal}})^2$, spatial sampling efficiency $\eta_{\text{template}} = r^2(\hat{w}, w_{\text{ideal}})$, equivalent internal noise $N_{\text{eq}}$, and critical spatial frequency/orientation bandwidths.
-3. **Universal Reverse-Correlation Classification Images**: Directly extracts 2D empirical perceptual templates $\hat{w}(x,y)$ and 2D Fourier domain spectra $|\hat{W}(f_x, f_y)|$ across **all 13 tasks and all 8 observers** to reveal what spatial information each model actually utilizes:
-   $$\hat{w}(x, y) = \frac{1}{N_{\text{trials}}} \sum_{t=1}^{N_{\text{trials}}} (2 \cdot \text{correct}_t - 1) \cdot \left[ N_{\text{target}, t}(x, y) - N_{\text{null}, t}(x, y) \right]$$
+2. **Bayesian Ideal Observer Efficiency**: Measures absolute sampling efficiency `η = (d' / d'_ideal)²`, spatial sampling efficiency `η_template = r²(ŵ, w_ideal)`, equivalent internal noise `N_eq`, and critical spatial frequency/orientation bandwidths.
+3. **Universal Reverse-Correlation Classification Images**: Directly extracts 2D empirical perceptual templates `ŵ(x, y)` and 2D Fourier domain spectra `|Ŵ(fx, fy)|` across **all 13 tasks and all 8 observers** to reveal what spatial information each model actually utilizes.
+
+### Reverse-Correlation Formula
+
+```math
+\hat{w}(x, y) = \frac{1}{N_{\text{trials}}} \sum_{t=1}^{N_{\text{trials}}} (2 \cdot \text{correct}_t - 1) \cdot \left[ N_{\text{target}, t}(x, y) - N_{\text{null}, t}(x, y) \right]
+```
+
+### Template Sampling Efficiency
+
+```math
+\eta_{\text{template}} = r^2(\hat{w}, w_{\text{ideal}}) = \frac{\left( \sum_{x, y} \hat{w}(x, y) \cdot w_{\text{ideal}}(x, y) \right)^2}{\left( \sum_{x, y} \hat{w}(x, y)^2 \right) \cdot \left( \sum_{x, y} w_{\text{ideal}}(x, y)^2 \right)}
+```
+
+### 2D Fourier Domain Orientation Tuning
+
+```math
+\hat{W}(f_x, f_y) = \mathcal{F}\left\{ \hat{w}(x, y) \right\}
+```
 
 ---
 
@@ -51,19 +69,19 @@ This suite bridges rigorous human psychophysical methodology and computational v
 Every task incorporates published human psychophysical data, exact Bayesian Ideal Observer derivations, and model evaluators:
 
 | # | Task Paradigm | Primary Literature Reference | Domain & Key Diagnostic |
-|---|---|---|---|
-| **1** | **2D Noise Orientation Summation** | **Taylor, Bennett, & Sekuler (2014)** *Frontiers in Psychology* | **2D Fourier Domain**: Tests adjustable orientation channels ($10^\circ \to 180^\circ$). Humans dynamically widen passbands ($14.5^\circ \to 36.8^\circ$) with active orthogonal suppression. Rigid V1/CNN filters cannot expand ($1.02\times$). |
-| **2** | **1D Noise SF Summation** | **Taylor, Bennett, & Sekuler (2009)** *JOSA A*; Kersten (1987) | **Spatial Domain**: 1D visual noise bars $S(x)$ across $0.5 - 3.0\text{ oct}$. Confirms internal filter remains fixed ($\text{FWHM} \approx 1.25\text{ oct}$, expansion $1.03\times$). |
-| **3** | **Face Inversion Effect (FIE)** | **Sekuler, Gaspar, Gold, & Bennett (2004)** *Nature* | Upright vs. inverted synthetic face identification in noise. Human eye dominance ($3.8:1$ eye-to-mouth ratio) collapses upon inversion ($3.45\times$ efficiency drop); CNNs show symmetric blurring. |
-| **4** | **Word Identification Inefficiency** | **Pelli, Farell, & Moore (2003)** *Nature* | 5-letter word strokes for "LIGHT". Humans exhibit strict letter-by-letter bottleneck ($\eta \propto 1/L$) vs. ideal holistic 5-letter matched filtering. |
-| **5** | **Contour Association Fields** | **Field, Hayes, & Hess (1993)** *Vision Research* | Collinear "snake-in-the-grass" path detection in orientation noise. Quantifies human $+5.4\text{ dB}$ collinear gain and V1 association fields vs. local ConvNet failure. |
-| **6** | **Visual Crowding Compulsory Pooling** | **Bouma (1970)**; **Pelli et al. (2004)** | Peripheral target Gabor flanked by distractors at spacing $s$. Confirms Bouma's law ($s \approx 0.5\varphi$) and massive flanker leakage in ConvNet pooling layers. |
-| **7** | **ModelFest #8 Gabor Detection** | **Watson (2000)** *OSA ModelFest Suite* | Standard 4.47 cpd Gabor in calibrated white noise. Establishes baseline spatial sampling efficiency $\eta_{\text{template}}$ and equivalent internal noise $N_{\text{eq}}$. |
-| **8** | **Compound Harmonic Phase Reversal** | **Burr (1980)** *Science* | $f + 3f$ compound harmonic edge vs. peak discrimination. Tests relative phase preservation in quadrature filters vs. invariant pooling phase loss in deep networks. |
-| **9** | **Off-Frequency Noise Masking** | **Henning, Hertz, & Broadbent (1975)** *JOSA* | Gabor detection in off-frequency noise bands. Ideal observer is immune ($0\text{ dB}$); biological gain control exhibits $3 - 5\text{ dB}$ broad masking. |
-| **10** | **Face & Letter Bandpass Masking** | **Gold, Bennett, & Sekuler (1999)** *Vision Research* | Identifies critical spatial frequency bands ($8 - 12\text{ c/face}$ for humans vs. high-frequency edge texture bias $>17\text{ c/face}$ in CNNs). |
-| **11** | **Random-Dot Stereograms (RDS)** | **Julesz (1971)**; **Neri et al. (1999)** *Nature* | Cyclopean central square disparity patch with zero monocular luminance cues. Ideal binocular correlator reconstructs square; monocular CNNs/ViTs yield pure noise ($0\%$ efficiency). |
-| **12** | **Visual Search Attention Array** | **Palmer (1994)** *Perception & Psychophysics* | Target detection across set size $M \in [1, 2, 4, 8]$ in noise. Measures attentional spatial selectivity vs. distractor decision weight leakage. |
+|:---:|---|---|---|
+| **1** | **2D Noise Orientation Summation** | **Taylor, Bennett, & Sekuler (2014)** *Frontiers in Psychology* | **2D Fourier Domain**: Tests adjustable orientation channels (10° → 180°). Humans dynamically widen passbands (14.5° → 36.8°) with active orthogonal suppression. Rigid V1/CNN filters cannot expand (1.02×). |
+| **2** | **1D Noise SF Summation** | **Taylor, Bennett, & Sekuler (2009)** *JOSA A*; Kersten (1987) | **Spatial Domain**: 1D visual noise bars S(x) across 0.5–3.0 octaves. Confirms internal filter remains fixed (FWHM ≈ 1.25 octaves, expansion 1.03×). |
+| **3** | **Face Inversion Effect (FIE)** | **Sekuler, Gaspar, Gold, & Bennett (2004)** *Nature* | Upright vs. inverted synthetic face identification in noise. Human eye dominance (3.8:1 eye-to-mouth ratio) collapses upon inversion (3.45× efficiency drop); CNNs show symmetric blurring. |
+| **4** | **Word Identification Inefficiency** | **Pelli, Farell, & Moore (2003)** *Nature* | 5-letter word strokes for "LIGHT". Humans exhibit strict letter-by-letter bottleneck (η ∝ 1/L) vs. ideal holistic 5-letter matched filtering. |
+| **5** | **Contour Association Fields** | **Field, Hayes, & Hess (1993)** *Vision Research* | Collinear "snake-in-the-grass" path detection in orientation noise. Quantifies human +5.4 dB collinear gain and V1 association fields vs. local ConvNet failure. |
+| **6** | **Visual Crowding Compulsory Pooling** | **Bouma (1970)**; **Pelli et al. (2004)** | Peripheral target Gabor flanked by distractors at spacing s. Confirms Bouma's law (s ≈ 0.5φ) and massive flanker leakage in ConvNet pooling layers. |
+| **7** | **ModelFest #8 Gabor Detection** | **Watson (2000)** *OSA ModelFest Suite* | Standard 4.47 cpd Gabor in calibrated white noise. Establishes baseline spatial sampling efficiency η_template and equivalent internal noise N_eq. |
+| **8** | **Compound Harmonic Phase Reversal** | **Burr (1980)** *Science* | f + 3f compound harmonic edge vs. peak discrimination. Tests relative phase preservation in quadrature filters vs. invariant pooling phase loss in deep networks. |
+| **9** | **Off-Frequency Noise Masking** | **Henning, Hertz, & Broadbent (1975)** *JOSA* | Gabor detection in off-frequency noise bands. Ideal observer is immune (0 dB); biological gain control exhibits 3–5 dB broad masking. |
+| **10** | **Face & Letter Bandpass Masking** | **Gold, Bennett, & Sekuler (1999)** *Vision Research* | Identifies critical spatial frequency bands (8–12 c/face for humans vs. high-frequency edge texture bias >17 c/face in CNNs). |
+| **11** | **Random-Dot Stereograms (RDS)** | **Julesz (1971)**; **Neri et al. (1999)** *Nature* | Cyclopean central square disparity patch with zero monocular luminance cues. Ideal binocular correlator reconstructs square; monocular CNNs/ViTs yield pure noise (0% efficiency). |
+| **12** | **Visual Search Attention Array** | **Palmer (1994)** *Perception & Psychophysics* | Target detection across set size M ∈ [1, 2, 4, 8] in noise. Measures attentional spatial selectivity vs. distractor decision weight leakage. |
 | **13** | **Visual Working Memory Probe** | **Bays & Husain (2008)** *Science* | Delayed orientation estimation across mask noise delays. Feedforward models fail under delay; autoregressive VLMs preserve coarse orientation in token memory. |
 
 ---
@@ -74,21 +92,21 @@ The suite provides a unified observer zoo in [`vision_model_psychophysics/observ
 
 ### Canonical Psychophysical Models
 1. **`IdealObserver` (Bayesian SKE Matched Filter)**:
-   - Zero internal noise ($N_{\text{eq}} = 0$), $100\%$ sampling efficiency ($\eta = 1.0$), linear transducer (no TvC dip), exact target spectrum.
+   - Zero internal noise (`N_eq = 0`), 100% sampling efficiency (`η = 1.0`), linear transducer (no TvC dip), exact target spectrum.
 2. **`LinearAmplifierObserver` (LAM — Pelli 1981)**:
-   - Suboptimal template with human sampling efficiency ($\eta \approx 48\%$), additive internal equivalent noise ($N_{\text{eq}} = 3.2 \times 10^{-5}\text{ deg}^2$), no TvC dipper facilitation (linear transducer).
+   - Suboptimal template with human sampling efficiency (`η ≈ 48%`), additive internal equivalent noise (`N_eq = 3.2 × 10⁻⁵ deg²`), no TvC dipper facilitation (linear transducer).
 3. **`PerceptualTemplateObserver` (PTM — Lu & Dosher 1999)**:
-   - Bandpass filter ($\text{CBW} = 1.30\text{ oct}$), nonlinear power transducer ($\gamma = 2.05$), multiplicative noise ($A_m = 0.22$), and additive noise ($A_a = 0.0011$).
+   - Bandpass filter (`CBW = 1.30 octaves`), nonlinear power transducer (`γ = 2.05`), multiplicative noise (`A_m = 0.22`), and additive noise (`A_a = 0.0011`).
 4. **`FoleyDivisiveNormObserver` (Foley 1994)**:
-   - Excitatory filter $E^p$ divided by tuned inhibitory pool $(C_{50}^q + I^q)$ ($p=2.40, q=1.90, C_{50}=0.022$). Reproduces the classic human $\sim 4.3\text{ dB}$ TvC dipper facilitation dip and dynamic orthogonal suppression.
+   - Excitatory filter `E^p` divided by tuned inhibitory pool `(C₅₀^q + I^q)` (`p = 2.40, q = 1.90, C₅₀ = 0.022`). Reproduces the classic human ~4.3 dB TvC dipper facilitation dip and dynamic orthogonal suppression.
 
 ### Bio-Inspired & Open Neural Architectures
 5. **`V1MultiscaleGaborObserver` (Bio-Inspired Steerable Filter Bank)**:
-   - 16 multiscale quadrature channels (4 SFs $\times$ 4 Orientations) with Heeger (1992) cortical divisive normalization. Matches human phase preservation but exhibits rigid orientation channel bandwidths.
+   - 16 multiscale quadrature channels (4 SFs × 4 Orientations) with Heeger (1992) cortical divisive normalization. Matches human phase preservation but exhibits rigid orientation channel bandwidths.
 6. **`ConvNetHierarchyObserver` (Convolutional Backbone — ConvNeXt / ResNet)**:
-   - Strided convolutional stem + ReLU activations + spatial pooling. Demonstrates spatial pooling blur, broad critical bandwidth leakage ($2.10\text{ oct}$), absence of long-range association fields, and lack of TvC facilitation due to piecewise-linear ReLU.
+   - Strided convolutional stem + ReLU activations + spatial pooling. Demonstrates spatial pooling blur, broad critical bandwidth leakage (`2.10 octaves`), absence of long-range association fields, and lack of TvC facilitation due to piecewise-linear ReLU.
 7. **`ViTPatchAttentionObserver` (Vision Transformer — ViT / CLIP-ViT)**:
-   - Non-overlapping $8\times 8$ patch tokenization + per-patch LayerNorm + multi-head self-attention. Demonstrates sharp block grid discontinuities in classification images (high PBDI > 1.8), spectral sinc sidelobes, and $0\text{ dB}$ TvC dip.
+   - Non-overlapping `8×8` patch tokenization + per-patch LayerNorm + multi-head self-attention. Demonstrates sharp block grid discontinuities in classification images (high PBDI > 1.8), spectral sinc sidelobes, and 0 dB TvC dip.
 
 ### Multimodal Local Vision-Language Model
 8. **`LocalVLMObserver` (Local VLM — LLaVA via Ollama)**:
@@ -253,14 +271,14 @@ Then open your favorite browser:
 
 A dedicated single-page comparative studio featuring:
 1. **Domain Toggle**:
-   - **Spatial Domain $\hat{w}(x, y)$**: Shows actual task templates (1D noise bars, upright/inverted faces, "LIGHT" word strokes, contour snakes, crowding flankers, disparity squares).
-   - **2D Fourier Domain $|\hat{W}(f_x, f_y)|$**: Automatically selected for Taylor et al. (2014), showing orientation wedges and negative orthogonal suppression lobes.
-   - **Residual vs. SKE Ideal Observer ($\hat{w} - w_{\text{ideal}}$)**
-   - **Disagreement vs. Human Benchmark ($\hat{w} - w_{\text{human}}$)**
+   - **Spatial Domain ŵ(x, y)**: Shows actual task templates (1D noise bars, upright/inverted faces, "LIGHT" word strokes, contour snakes, crowding flankers, disparity squares).
+   - **2D Fourier Domain |Ŵ(fx, fy)|**: Automatically selected for Taylor et al. (2014), showing orientation wedges and negative orthogonal suppression lobes.
+   - **Residual vs. SKE Ideal Observer (ŵ − w_ideal)**
+   - **Disagreement vs. Human Benchmark (ŵ − w_human)**
 2. **Three Exploration Modes**:
-   - **Mode 1: Single Task Side-by-Side**: All 9 models rendered simultaneously with 1D cross-section cuts, sampling efficiency $\eta_{\text{template}} = r^2$, and architectural diagnoses.
-   - **Mode 2: Grand Matrix (13 Tasks $\times$ 6 Key Models)**: Full table view of classification images across tasks and architectures.
-   - **Mode 3: Pairwise Diff Examiner**: Select Model A and Model B to inspect their difference map $(\hat{w}_A - \hat{w}_B)$, correlation $r(A, B)$, and RMS spatial discrepancy.
+   - **Mode 1: Single Task Side-by-Side**: All 9 models rendered simultaneously with 1D cross-section cuts, sampling efficiency `η_template = r²`, and architectural diagnoses.
+   - **Mode 2: Grand Matrix (13 Tasks × 6 Key Models)**: Full table view of classification images across tasks and architectures.
+   - **Mode 3: Pairwise Diff Examiner**: Select Model A and Model B to inspect their difference map `(ŵ_A − ŵ_B)`, correlation `r(A, B)`, and RMS spatial discrepancy.
 3. **Colormap Switcher**: Viridis (Cyan/Green/Yellow), Seismic (Diverging Blue/White/Red), and Grayscale.
 
 ---
@@ -334,17 +352,17 @@ vision-model-psychophysics/
 ## Key Psychophysical Findings & Architectural Divergences
 
 1. **Orientation Channels are Adjustable; SF Channels are Fixed**:
-   - In **Taylor et al. (2014)**, human orientation channel bandwidth expands by **$2.54\times$** (HWHM $14.5^\circ \to 36.8^\circ$) with active orthogonal suppression. Standard V1 filter banks and ConvNet backbones fail to adjust (Flexibility Ratio $= 1.02\times$).
-   - In **Taylor et al. (2009)**, internal spatial frequency channel bandwidth remains strictly fixed ($\text{FWHM} \approx 1.25\text{ oct}$, Expansion Ratio $= 1.03\times$).
+   - In **Taylor et al. (2014)**, human orientation channel bandwidth expands by **2.54×** (HWHM 14.5° → 36.8°) with active orthogonal suppression. Standard V1 filter banks and ConvNet backbones fail to adjust (Flexibility Ratio = 1.02×).
+   - In **Taylor et al. (2009)**, internal spatial frequency channel bandwidth remains strictly fixed (FWHM ≈ 1.25 octaves, Expansion Ratio = 1.03×).
 2. **TvC Dipper Facilitation Anomaly**:
-   - Humans and cortical gain-control models (Foley 1994, V1 bank) exhibit a prominent $\sim 4.3\text{ dB}$ pedestal facilitation dip at near-threshold contrasts due to accelerating nonlinear transducers ($p > 2$).
-   - Standard feedforward ConvNets (ReLU piecewise-linear) and ViTs (per-patch LayerNorm) completely lack dipper facilitation ($0\text{ dB}$ dip).
+   - Humans and cortical gain-control models (Foley 1994, V1 bank) exhibit a prominent ~4.3 dB pedestal facilitation dip at near-threshold contrasts due to accelerating nonlinear transducers (`p > 2`).
+   - Standard feedforward ConvNets (ReLU piecewise-linear) and ViTs (per-patch LayerNorm) completely lack dipper facilitation (0 dB dip).
 3. **Patchification & Spatial Pooling Footprints**:
-   - ViT architectures imprint non-overlapping $8\times 8$ grid discontinuities (high PBDI > 1.8) and spectral sinc aliasing onto classification images.
-   - ConvNets suffer from severe distractor intrusion ($> 50\%$ weight leakage) under peripheral crowding due to unconstrained hierarchical pooling.
+   - ViT architectures imprint non-overlapping `8×8` grid discontinuities (high PBDI > 1.8) and spectral sinc aliasing onto classification images.
+   - ConvNets suffer from severe distractor intrusion (> 50% weight leakage) under peripheral crowding due to unconstrained hierarchical pooling.
 4. **Face Inversion & Holistic Bottlenecks**:
-   - Human classification images show dramatic eye-region dominance ($3.8:1$ eye-to-mouth ratio) that collapses upon inversion ($3.45\times$ efficiency loss). Data-augmented deep networks exhibit symmetric, invariant blurring.
-   - For words, humans exhibit a strict letter-by-letter efficiency bottleneck ($\eta \propto 1/L$), while the Ideal Observer uses holistic 5-letter matched filtering.
+   - Human classification images show dramatic eye-region dominance (3.8:1 eye-to-mouth ratio) that collapses upon inversion (3.45× efficiency loss). Data-augmented deep networks exhibit symmetric, invariant blurring.
+   - For words, humans exhibit a strict letter-by-letter efficiency bottleneck (`η ∝ 1/L`), while the Ideal Observer uses holistic 5-letter matched filtering.
 
 ---
 
