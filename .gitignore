@@ -19,3 +19,14 @@ dist/
 # Large model weights cache
 models_cache/
 *.gguf
+
+# --- non-vision projects living in this folder (own repos now) ---
+bespoke_chess_trainer/
+ollama_multiagent_workflow/
+surface_ai/
+usenet_archaeology/
+seldon-iv/
+__pycache__/
+build/
+dist/
+
